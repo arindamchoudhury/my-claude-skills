@@ -10,12 +10,12 @@ A workflow for turning web links and PDFs into a searchable personal notes site 
 ## When to use this skill
 
 - User shares a URL and wants to capture notes from it.
-- User shares a PDF that is NOT a book being studied chapter-by-chapter (for books, use **zensical-notes** instead).
+- User shares a PDF that is NOT a book being studied chapter-by-chapter (for books, use **book-pdf-notes** instead).
 - User wants to build a research collection across multiple sources on a topic.
 - User says "add this to my notes", "take notes on this article/paper/page".
 - User wants a searchable personal knowledge base from web and PDF sources.
 
-**Use zensical-notes instead for:** books being studied chapter-by-chapter, technical manuals with chapter structure, study notes on a single long-form text.
+**Use book-pdf-notes instead for:** books being studied chapter-by-chapter, technical manuals with chapter structure, study notes on a single long-form text.
 
 ## Project layout
 

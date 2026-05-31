@@ -1,9 +1,9 @@
 ---
-name: zensical-notes
+name: book-pdf-notes
 description: Build and extend a Zensical "reading notes" site from PDF books, papers, or technical manuals — including multi-book setups studying one topic across several sources. Trigger whenever the user wants to take notes on a PDF, study chapter-by-chapter, summarize a book into durable docs, extend an existing notes site, add a second book to an existing site, or compare what multiple books say about a topic. Catches phrases like "take notes on this PDF", "let's do chapter X", "summarize this chapter", "I'm studying [topic]", "add this book to my notes", "compare these books on X", and any time a user uploads a PDF and asks for note-taking help — even without naming Zensical. Produces detailed-outline Markdown, scaffolds multi-book projects by default (per-book chapters plus cross-book topic pages), keeps nav/reading-log/glossary/topic-pages in sync, and refreshes version-specific content to the latest release at note-taking time.
 ---
 
-# Zensical Notes
+# Book PDF Notes
 
 A workflow for turning PDFs into a personal study site built with [Zensical](https://zensical.org/) — the static-site generator from the Material for MkDocs team. The output is a folder of plain Markdown files plus a `zensical.toml` config; the user runs the site locally with `zensical serve` (or via Docker) and gets a clean, searchable, navigable docs site of their notes.
 

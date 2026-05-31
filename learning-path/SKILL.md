@@ -38,12 +38,13 @@ notes root = C:\opt\learn\<topic-slug>\notes
 Read `references/phase1-research.md` for full instructions.
 
 **Summary:**
-1. Research top books on the topic (TOCs, chapter arcs) via web search
-2. Research top courses (official academies, Udemy, Coursera, YouTube)
-3. Validate current stable version against official docs
-4. Scaffold `C:\opt\learn\<topic-slug>\notes\` (Zensical site, fetch script, Docker)
-5. Auto-generate `~/.claude/skills/<topic>-book/SKILL.md`
-6. Write initial docs (index, sources, glossary, resources)
+1. Research topic taxonomy — derive all topics from certification exams, university syllabi, job descriptions, and course curricula; classify each topic as Beginner / Intermediate / Advanced / Expert
+2. Research top books (fetch full TOCs); note which topics each book covers
+3. Research courses — official academies, university MOOCs (Coursera/edX), Udemy, YouTube, interactive platforms (DataCamp, Kaggle); note topics covered, hours, hands-on vs lecture
+4. Research certifications — fetch official exam guides; record topics, weights, fees, and which level they validate
+5. Validate current stable version against official docs
+6. Scaffold `C:\opt\learn\<topic-slug>\notes\` (Zensical site, Docker)
+7. Auto-generate `~/.claude/skills/<topic>-book/SKILL.md` with full chapter arc from taxonomy
 
 Phase 1 flows directly into Phase 2.
 
@@ -54,29 +55,29 @@ Phase 1 flows directly into Phase 2.
 Read `references/phase2-path.md` for full instructions.
 
 **Summary:**
-1. Order resources by concept dependency (not prestige)
-2. Write `docs\learning-path.md` with stages, time estimates, focus notes
-3. Mark each resource: Essential / Recommended / Optional
-4. Flag resources targeting older versions
+1. Organise topics into four levels: Beginner / Intermediate / Advanced / Expert
+2. For each topic write: what it is (1 sentence), why you need it (1 sentence), **multi-modal "How to learn it"** (video first → interactive exercise → depth reading → reference docs), and a concrete milestone
+3. Place certifications as level checkpoints (not as topics)
+4. Do NOT organise by resource/book/course — topics are the primary unit; resources serve the topics
+5. Every "How to learn it" section must include at least two different resource types (video, interactive, book, official course, docs, project)
 
 ---
 
-## Phase 3 — Chapter Writing
+## Phase 3 — Book Chapter Writing
 
 Read `references/phase3-book.md` for full instructions.
 
-**Every lesson produces TWO outputs:**
-1. **Book chapter** (`docs\book\ch<NN>-<slug>.md`) — pedagogical, explained, with pitfalls and exercises
-2. **Research note** (`docs\sources\<course-slug>\<slug>.md`) — source-faithful reference, cross-linked to book chapter
+**Notes** (written by `book-pdf-notes`) are source-faithful — one per book/article/course. **Book chapters** (written here) are topic-driven syntheses — one per learning-path topic, blending all sources the user has read on that topic.
 
 **Summary:**
-1. Read the notebook(s) / lesson content
-2. Validate every function/class against official docs; save findings to `cache\search\`
-3. Determine: new book chapter or blend into existing?
-4. Write the book chapter (full explanation, examples, pitfalls, exercises)
-5. Write the research note (source-faithful, code examples, links to book chapter)
-6. Add version callout if course material is behind current release
-7. Sync nav: book + research notes in `zensical.toml`, source indexes, glossary, topics backlog
+1. Trigger: user says "I finished topic X" or "write the chapter for X"
+2. Identify the topic code and chapter number from the topic-book skill's arc table
+3. Gather all notes already written for this topic (grep notes directory)
+4. Web-search for current best practices and pitfalls not yet in the notes
+5. Produce a synthesis plan — how to blend sources; note conflicts and different framings
+6. Write one book chapter that blends all sources; chapter follows the learning-path topic's scope exactly
+7. Use the topic-book skill's chapter template (8 sections)
+8. Sync: book index, `zensical.toml`, glossary
 
 ---
 
