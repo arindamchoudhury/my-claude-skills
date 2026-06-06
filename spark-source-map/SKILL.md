@@ -142,6 +142,18 @@ the learning path changes. Never hand-edit `index.md`.
 
 ---
 
+## Knowledge pipeline (read before tracing)
+
+There are three tiers — understanding them is required for the "Chapter notes" section:
+
+1. **Learning path** (`docs/learning-path.md`) — advises which external books to read for each topic (Rioux Ch X, LS2e Ch Y, etc.). Does not represent the synthesis.
+2. **Book notes** (`docs/books/<slug>/chapters/`) — raw notes taken while reading each external book.
+3. **Spark book** (`docs/spark-book/ch<NN>-*.md`) — the synthesized personal book. This is the *output* of all learning. The spark-book `index.md` maps each topic code to its chapter(s).
+
+The "Chapter notes" section in a topic trace is a **gap analysis against the spark-book**: what did the source reveal that the spark-book already has, and what does the spark-book still need? It is never a comparison against external books (Rioux, LS2e, SDG) — those feed into the spark-book but are not the synthesis target.
+
+---
+
 ## Topic page contract
 
 The topic tracer writes Markdown with this front matter — `gen_coverage.py` reads it:
@@ -182,7 +194,19 @@ One paragraph — the concept, not the code.
 | `spark.sql.autoBroadcastJoinThreshold` | 10MB | Threshold for broadcast hash join |
 
 ## Chapter notes
-What the chapter covers vs what the source reveals beyond it.
+
+Gap analysis against the spark-book chapter(s) for this topic.
+Read `docs/spark-book/index.md` to find which chapter(s) map to this topic code,
+then read those chapter files. Produce two sections:
+
+### Already in spark-book ✅
+Bullet list of what the source trace confirms is already covered. Be specific —
+name the section or concept in the spark-book that covers it.
+
+### Not in spark-book — needs addition ❌
+Bullet list of what the source trace found that is NOT yet in the spark-book.
+For each gap: one sentence naming the missing concept and why it matters.
+These are the additions that should be made to the spark-book chapter.
 ```
 
 ## Sweep page contract
@@ -230,6 +254,16 @@ Dispatch a `feature-dev:code-explorer` (or general-purpose) subagent, read-only,
 > For this topic: identify the key source classes and their entry points, trace the
 > analysis/planning/execution path, and annotate each class with `file:line` anchors.
 > Pull relevant configs from the supplied catalog slice.
+>
+> **Chapter notes — gap analysis against the spark-book:**
+> Read `docs/spark-book/index.md` to find which spark-book chapter(s) map to topic code
+> `<code>`. Then read those chapter file(s). Produce a gap analysis with two subsections:
+> - **Already in spark-book ✅** — what the source trace confirms is already covered;
+>   be specific about the section or concept in the spark-book.
+> - **Not in spark-book — needs addition ❌** — what the source trace found that is NOT
+>   yet in the spark-book; one sentence per gap naming the concept and why it matters.
+> The spark-book is the synthesis *output*, not a source to compare against. Never write
+> "the Rioux book covers X" — the gap analysis is always against the spark-book.
 >
 > Return the topic page in the exact front-matter contract above (fields: `topic`, `title`,
 > `status`, `chapter`, `repos`, `configs`, `sources`), followed by the prose sections:
