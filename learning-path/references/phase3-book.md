@@ -126,7 +126,7 @@ Show the synthesis plan to the user before writing the full chapter if the topic
 
 ## Step 5 — Write the chapter
 
-Use the topic-book skill's chapter template (e.g., `~/.claude/skills/spark-book/SKILL.md`).
+Read the topic-book skill's chapter guidance (e.g., `~/.claude/skills/spark-book/SKILL.md`) for code standards and the element toolkit. There is no fixed chapter template — see "Chapter form" below.
 
 ### Blending rules
 
@@ -145,17 +145,43 @@ Use the topic-book skill's chapter template (e.g., `~/.claude/skills/spark-book/
 
 **Do not cite sources in the body prose.** The chapter is written in the user's voice, as their understanding. Source attribution lives in the References section at the end.
 
-### Chapter structure
+### Chapter form — fit the topic, don't fill a template
 
-Follow the topic-book skill's template exactly:
-1. What you'll learn (3–5 bullet outcomes)
-2. The problem this solves (concrete scenario)
-3. Core concept (200–400 words; the WHY)
-4. Examples (minimal → complete; one new idea per example)
-5. Common pitfalls (3–5; drawn from all sources + web research)
-6. Exercises (recall / apply / extend)
-7. Summary (3–5 bullets; last sentence points to next chapter)
-8. References (bullet list of all sources that informed this chapter)
+**There is no fixed section list.** The right structure depends on what kind of topic this is. A setup/installation chapter, an API-walkthrough chapter, an architecture/internals chapter, and a tuning chapter each want a different shape. Forcing all of them through the same headings produces padded, unnatural chapters where half the sections are filler.
+
+Instead, every chapter must satisfy a few **invariants**, and otherwise draws freely from a **toolkit of elements** in whatever order reads best for the topic.
+
+**Invariants — every chapter, no exceptions:**
+
+- Opens by establishing why the topic matters — the problem it solves or the capability it unlocks. The reader should know within the first screen why they're here.
+- Teaches toward the learning-path milestone for this topic. When the reader finishes, they can do the thing the milestone names.
+- All code is current (Spark 4.x / Python 3.10+), complete, and runnable — no deprecated APIs, no `# ...` truncation.
+- Ends pointing forward — the closing lines connect to the next topic or to what this chapter unlocks.
+
+**Toolkit — use the elements the topic needs, in the order that serves it:**
+
+- Learning outcomes up front (valuable for dense topics; skip for short ones)
+- A motivating problem or failed-the-hard-way scenario
+- Core-concept / mental-model prose (the WHY)
+- Worked examples, minimal → complete, one new idea each
+- Diagrams (Mermaid) where a picture beats prose — architecture, data flow, partitioning
+- A reference table where the topic is API-shaped (a family of functions, config keys, frame types)
+- A semantics / edge-case section where correctness is subtle (streaming watermarks, null handling, frame defaults)
+- Common pitfalls drawn from all sources + web research
+- Performance notes where the topic has cost implications
+- Exercises (recall / apply / extend)
+- Summary
+- References (all sources that informed the chapter)
+
+**Match the shape to the topic — examples:**
+
+- *Setup / environment* → mostly procedure + verification; heavy on "what can go wrong"; few or no exercises.
+- *API family* (e.g. DataFrame transformations) → organised around a reference table plus one tight example per important operation.
+- *Architecture / internals* → prose and diagrams lead; code is illustrative, not the point.
+- *Concept* (e.g. window functions) → problem → mental model → examples → semantics → pitfalls.
+- *Tuning / operations* → symptom → diagnosis → fix, with Spark UI walkthroughs and before/after metrics.
+
+Let the topic pick the structure. A chapter that needs only four of these elements should have only four — don't manufacture a "Pitfalls" or "Exercises" section just to fill a slot.
 
 ---
 

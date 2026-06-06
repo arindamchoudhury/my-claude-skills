@@ -76,7 +76,7 @@ Read `references/phase3-book.md` for full instructions.
 4. Web-search for current best practices and pitfalls not yet in the notes
 5. Produce a synthesis plan — how to blend sources; note conflicts and different framings
 6. Write one book chapter that blends all sources; chapter follows the learning-path topic's scope exactly
-7. Use the topic-book skill's chapter template (8 sections)
+7. Fit the chapter's structure to the topic — free format guided by a few invariants, not a fixed 8-section template
 8. Sync: book index, `zensical.toml`, glossary
 
 ---

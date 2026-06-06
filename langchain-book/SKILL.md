@@ -41,50 +41,53 @@ The final chapter is always a **capstone project** — a complete, production-re
 
 ---
 
-## Standard Chapter Template
+## Chapter Form
 
-Every chapter follows this structure. Adapt the depth to the topic.
+**There is no fixed section template.** The right structure depends on the topic. A foundation/setup chapter, an API-component chapter, a concept/architecture chapter, a pattern chapter (RAG, multi-agent), and a production/ops chapter each take a different shape — forcing them all through the same headings produces padded chapters where half the sections are filler. Fit the chapter to its topic.
+
+### Fixed header (every chapter)
 
 ```markdown
 # Chapter N: <Title>
 
-## What you'll learn
-- Bullet list of 3–5 concrete outcomes
+> *Target level: <Beginner / Intermediate / Advanced>*
+> *LangChain 1.x / LangGraph 1.x · Python 3.12+*
 
-## The problem we're solving
-One paragraph framing — WHY this exists, what breaks without it.
-Use a real-world scenario the reader has faced.
-
-## Concept overview
-Short prose (200–400 words). Use an analogy or diagram description.
-Don't repeat what the code will show — explain what's happening beneath.
-
-## Minimal working example
-The simplest possible code that demonstrates the concept.
-Always include: imports, env loading, and a runnable main block.
-
-## Building up
-2–4 progressively more complete examples.
-Each example should add ONE new idea, not several at once.
-
-## Under the hood (optional)
-For non-obvious internals worth understanding.
-Keep short — readers can skip this box.
-
-## Real-world example
-A practical scenario close to what the reader will actually build.
-Must use current LangChain 1.x / LangGraph 1.x APIs.
-
-## Common pitfalls
-3–5 bullet points. Each: what goes wrong, why, how to fix it.
-
-## Exercises
-3 exercises: one recall, one apply, one extend.
-
-## Summary
-3–5 bullet points recapping what was covered.
-Last sentence: what the next chapter builds on top of.
+One paragraph: what this chapter is about and why the topic matters.
 ```
+
+### Invariants — every chapter, no exceptions
+
+- Opens by establishing why the topic matters — the problem it solves or the capability it unlocks, anchored in a real-world scenario the reader has faced.
+- Teaches toward a concrete capability — when done, the reader can build the thing the chapter is about.
+- All code is current (LangChain 1.x / LangGraph 1.x), complete, and runnable, with `load_dotenv()` shown wherever API keys are used — see Code Standards below.
+- Ends pointing forward — the closing lines connect to the next chapter or the part's mini-project.
+
+### Toolkit — use the elements the topic needs, in the order that serves it
+
+- **Learning outcomes** up front (3–5 bullets) — valuable for dense topics; skip for short ones
+- **A motivating problem** — what breaks or stays painful without this topic
+- **Concept overview / mental model** prose — explain what happens beneath the code, not what the code already shows; an analogy where it helps
+- **Minimal working example** — the simplest runnable code that demonstrates the concept
+- **Building up** — 2–4 progressively complete examples, each adding ONE new idea
+- **"Under the hood"** box — non-obvious internals worth understanding; keep short, skippable
+- **Mermaid diagrams** where a picture beats prose — ReAct loops, LangGraph topologies, RAG pipelines, multi-agent handoffs
+- **A reference table** where the topic is API-shaped — a family of options, parameters, message types
+- **A real-world example** close to what the reader will actually build
+- **Common pitfalls** (3–5) — what goes wrong, why, how to fix; drawn from real bugs, never invented
+- **Exercises** — recall / apply / extend
+- **Summary** — key takeaways; last bullet points to what the next chapter builds on
+- **Further reading** — official LangChain/LangGraph docs + any sources consulted
+
+### Match the shape to the topic
+
+- **Foundation / setup** (e.g. Ch 1–2) → procedure + first working call; verification; heavy on env/key "what can go wrong"; light on exercises.
+- **API component** (e.g. prompts, parsers, memory) → minimal example → building up → real-world, organised around a reference table of the options.
+- **Concept / architecture** (e.g. what are agents, LangGraph internals) → prose and Mermaid diagrams lead; code is illustrative, not the point.
+- **Pattern** (e.g. RAG, supervisor multi-agent, HITL) → problem → diagram of the flow → progressive build → pitfalls.
+- **Production / ops** (e.g. deployment, eval, observability) → symptom → diagnosis → fix, with LangSmith traces and before/after.
+
+Let the topic pick the structure. A chapter that needs only four of these elements should have only four — don't manufacture a "Pitfalls" or "Exercises" section just to fill a slot.
 
 ---
 
@@ -163,11 +166,11 @@ State the target level explicitly at the start of each chapter draft.
 ## Writing Process (follow in order)
 
 ### Step 1 — Outline the chapter
-Before writing prose, produce:
-1. The "problem we're solving" paragraph
+First decide the chapter's shape (see Chapter Form — which topic type is this?), then produce:
+1. The "why this matters" framing paragraph
 2. Bullet list of all code examples (name + what it demonstrates)
-3. Bullet list of pitfalls to cover
-4. The 3 exercises
+3. Which toolkit elements this topic needs (and which to omit), in order
+4. Pitfalls and exercises only if the topic warrants them
 
 Get user sign-off on the outline before writing the full chapter.
 
@@ -182,8 +185,8 @@ Fill in around the code. Keep prose tight:
 - No restating what the code already shows
 - Use bold for the first mention of every new term
 
-### Step 4 — Write the exercises
-Three tiers:
+### Step 4 — Write the exercises (where the topic warrants them)
+Skip for chapters where exercises add nothing (e.g. a pure setup chapter). When included, use three tiers:
 1. **Recall** — "What does X return when Y?" (can answer from reading)
 2. **Apply** — "Modify the example to do Z" (requires running code)
 3. **Extend** — "Build a small feature that..." (open-ended, no single answer)

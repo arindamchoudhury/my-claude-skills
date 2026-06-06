@@ -124,21 +124,32 @@ Run at least two searches:
 ```
 
 Also check:
-- `docs/research-cache/spark-api-versions.md` — may already have verified facts
+- `docs/research-cache/spark-api-versions.md` — API versions, function additions, config defaults
+- `docs/research-cache/spark-source-internals-v412.md` — source-verified execution internals (QueryExecution, WholeStageCodegenExec, FileScanRDD, UnsafeRow, stage types)
 - The relevant official docs page (see Code Standards below for URLs)
 
-Save any new verified facts to `docs/research-cache/spark-api-versions.md`.
+**Verifying against Spark v4.1.2 source:** Use the local checkout at `C:\opt\learn\spark\spark`. Read or grep files directly — do not rely on web search for source-level facts. Examples:
+
+```powershell
+# Find a config default
+grep -r "maxFailures" "C:\opt\learn\spark\spark\core\src\main\scala\org\apache\spark\internal\config"
+
+# Read a specific class
+cat "C:\opt\learn\spark\spark\sql\core\src\main\scala\org\apache\spark\sql\execution\QueryExecution.scala"
+```
+
+Save any new verified facts to the appropriate cache file above.
 
 ### Step 3 — Write the chapter
 
-Use the **Standard Chapter Template** below. File goes to `docs/spark-book/ch<NN>-<slug>.md`.
+Fit the chapter to the topic — there is no fixed section list. See **Chapter Form** below. File goes to `docs/spark-book/ch<NN>-<slug>.md`.
 
 Rules:
 - Write from first principles, in your own voice — not as a summary of a specific book
-- The "problem this solves" section must use a concrete real-world scenario
+- Open by establishing why the topic matters, anchored in a concrete real-world scenario
 - Every code block must be complete and runnable (all imports included)
 - Build from minimal → complete — one new idea per example
-- The "pitfalls" section must be drawn from real bugs (from the book notes, web research, or verified behaviour)
+- Where the chapter includes pitfalls, draw them from real bugs (book notes, web research, or verified behaviour) — never invented
 
 ### Step 4 — Sync site files
 
@@ -165,7 +176,13 @@ Book progress: N / 38 chapters
 
 ---
 
-## Standard Chapter Template
+## Chapter Form
+
+**There is no fixed section template.** The right structure depends on the topic. A setup chapter, an API-family chapter, an architecture/internals chapter, and a tuning chapter each take a different shape — forcing them all through the same headings produces padded chapters where half the sections are filler. Fit the chapter to its topic.
+
+### Fixed header (every chapter)
+
+Start every chapter file with the title and metadata blockquote, then a one-paragraph hook:
 
 ```markdown
 # Chapter NN — <Title>
@@ -174,87 +191,39 @@ Book progress: N / 38 chapters
 > *Written: YYYY-MM-DD · Spark 4.1.x / Python 3.10+*
 
 One paragraph: what this chapter is about and why the topic matters.
-
----
-
-## What you'll learn
-
-- Bullet 1 (concrete, measurable outcome)
-- Bullet 2
-- Bullet 3
-- Bullet 4 (3–5 max)
-
----
-
-## The problem this solves
-
-One paragraph using a concrete real-world scenario. What breaks or becomes painful without this topic? Anchor it in something the reader will recognise from their own work.
-
----
-
-## Core concept
-
-200–400 words. Explain the WHY behind the mechanism, not just the WHAT. Use an analogy where it helps. Include a comparison table if the topic has a commonly confused alternative.
-
----
-
-## Examples
-
-### Minimal example
-
-The simplest possible working code that demonstrates the concept.
-
-```python
-# pyspark 4.1.x · Python 3.10+
-import pyspark.sql.functions as F
-import pyspark.sql.types as T
-from pyspark.sql import SparkSession
-
-spark = SparkSession.builder.appName("ch<NN>").getOrCreate()
-
-# ... minimal demonstration
 ```
 
-### Building up
+### Invariants — every chapter, no exceptions
 
-One or two more examples, each adding one new idea.
+- Opens by establishing why the topic matters — the problem it solves or the capability it unlocks. The reader knows within the first screen why they're here.
+- Teaches toward the learning-path milestone for this topic. When done, the reader can do what the milestone names.
+- All code is current (Spark 4.1.x / Python 3.10+), complete, and runnable — see Code Standards below.
+- Ends pointing forward — the closing lines connect to the next topic or to what this chapter unlocks.
 
----
+### Toolkit — use the elements the topic needs, in the order that serves it
 
-## Common pitfalls
+- **Learning outcomes** up front (3–5 bullets) — valuable for dense topics; skip for short ones
+- **A motivating problem** — a concrete scenario that breaks or becomes painful without this topic
+- **Core concept / mental model** prose — the WHY behind the mechanism, not just the WHAT; an analogy or comparison table where it helps
+- **Worked examples**, minimal → complete, one new idea each
+- **Mermaid diagrams** where a picture beats prose — architecture, data flow, partitioning, shuffle
+- **A reference table** where the topic is API-shaped — a family of functions, config keys, frame types
+- **A semantics / edge-case section** where correctness is subtle — ANSI overflow, null handling, watermarks, frame defaults
+- **Common pitfalls** (3–5) drawn from real bugs — book notes, web research, verified behaviour; never invented
+- **Performance notes** where the topic has cost implications
+- **Exercises** — recall / apply / extend
+- **Summary** — key takeaways; last bullet points to what the next chapter builds on
+- **References** — official PySpark docs page + any sources consulted
 
-- **Pitfall name** — what goes wrong, why it happens, and how to fix or avoid it.
-- (3–5 pitfalls)
+### Match the shape to the topic
 
----
+- **Setup / environment** → mostly procedure + verification; heavy on "what can go wrong"; few or no exercises.
+- **API family** (e.g. DataFrame transformations, column functions) → organised around a reference table plus one tight example per important operation.
+- **Architecture / internals** (e.g. Catalyst, Tungsten, the DAG scheduler) → prose and Mermaid diagrams lead; code is illustrative, not the point.
+- **Concept** (e.g. window functions, joins) → problem → mental model → examples → semantics → pitfalls.
+- **Tuning / operations** (e.g. skew, AQE, partitioning) → symptom → diagnosis → fix, with Spark UI walkthroughs and before/after metrics.
 
-## Exercises
-
-1. **Recall** — answerable from reading, no code needed.
-   *Hint: ...*
-
-2. **Apply** — requires writing and running code.
-   *Starting point: ...*
-
-3. **Extend** — open-ended, multiple valid answers.
-   *Stretch goal: ...*
-
----
-
-## Summary
-
-- Bullet 1 (key takeaway)
-- Bullet 2
-- Bullet 3
-- Last bullet: what the next chapter builds on top of.
-
----
-
-## References
-
-- [Official PySpark docs — relevant page](https://spark.apache.org/docs/latest/...)
-- Any other sources consulted while writing
-```
+Let the topic pick the structure. A chapter that needs only four of these elements should have only four — don't manufacture a "Pitfalls" or "Exercises" section just to fill a slot.
 
 ---
 
@@ -323,6 +292,31 @@ df.write.format("delta").saveAsTable("unity.default.<table_name>")
 # reading back
 df = spark.read.table("unity.default.<table_name>")
 ```
+
+---
+
+## Diagram Standards
+
+**Always use Mermaid for diagrams.** Never use ASCII art (`─`, `│`, `▶`, `└`, `├`, etc.) for diagrams, flowcharts, or sequence illustrations. Mermaid renders natively in the Zensical site; ASCII art does not.
+
+```markdown
+```mermaid
+flowchart TD
+    A["Node A"] --> B["Node B"]
+```
+```
+
+Use the appropriate Mermaid diagram type for the content:
+
+| Content | Diagram type |
+|---|---|
+| Component relationships, data flow, execution pipeline | `flowchart TD` or `flowchart LR` |
+| Sequences and protocol exchanges | `sequenceDiagram` |
+| State machines | `stateDiagram-v2` |
+| Entity relationships | `erDiagram` |
+| Timelines / Gantt | `gantt` |
+
+Node labels may contain newlines using `\n` inside the label string.
 
 ---
 
@@ -419,6 +413,31 @@ query = (
 | pandas | ≥ 2.2.0 | Minimum for Spark 4.1 |
 | PyArrow | Latest stable | Required for pandas UDFs; zero-copy Arrow serialisation |
 | Dagster | Latest stable | `dagster-pyspark` for Spark integration |
+
+**Verified research facts (do not re-search):**
+
+| Fact | Value | Source |
+|---|---|---|
+| Spark origin paper | *"Spark: Cluster Computing with Working Sets"* — Zaharia et al., **2010**, HotCloud (USENIX) | Ch01 reference |
+| RDD origin paper | *"Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing"* — Zaharia et al., **2012**, NSDI (USENIX) — Best Paper Award | Ch03 reference |
+| Spark Connect is opt-in in 4.x | Classic mode is default for both `pyspark` shell and `spark-submit`; opt in via `SPARK_REMOTE`, `--remote`, or `spark.api.mode=connect` | Verified against Spark 4.1.2 docs |
+| `spark.task.maxFailures` default | **4** — confirmed in `core/src/main/scala/org/apache/spark/internal/config/package.scala` v4.1.2 | Source-verified |
+| KubernetesSchedulerBackend class name | `KubernetesClusterSchedulerBackend` (not `KubernetesSchedulerBackend`) | Source-verified |
+| Celeborn JAR for Spark 4.x | `celeborn-client-spark-4-shaded_*.jar` (not spark-3) | Maven Central |
+| JDK requirement for Spark 4.x | Java **17 or 21** (not "17+") | Spark 4.1.2 docs |
+| `QueryExecution.toRdd` | `new SQLExecutionRDD(executedPlan.execute(), conf)` — `RDD[InternalRow]` is the scheduling shell | v4.1.2 source |
+| `WholeStageCodegenExec.doExecute()` | Gets leaf RDDs via `inputRDDs()`, wraps with `mapPartitionsWithIndex { evaluator.eval() }` — Tungsten runs INSIDE the RDD partition | v4.1.2 source |
+| `FileScanRDD` | `extends RDD[InternalRow]` — real RDD, not bypassed; ends with `asInstanceOf[Iterator[InternalRow]] // This is an erasure hack.` | v4.1.2 source |
+| `UnsafeRow` default memory | **On-heap** by default; `sun.misc.Unsafe` is the write API, not the allocator; off-heap requires `spark.memory.offHeap.enabled=true` | v4.1.2 source |
+| `GenericInternalRow` appears | Only when codegen disabled (`spark.sql.codegen.wholeStage=false`), during Catalyst planning, or in tests — never in normal Tungsten execution | v4.1.2 source |
+| `spark.sql.codegen.fallback` | Default `true` — silent fallback to interpreted execution with `GenericInternalRow` on codegen compile failure | v4.1.2 source |
+| `ShuffleMapTask.runTask()` | Returns `MapStatus` (not void) — shuffle file location metadata sent to driver; user data goes to local disk only | v4.1.2 source |
+| `ResultStage` partial execution | May run on subset of partitions — `first()` runs on 1 partition, `lookup(key)` runs on 1 partition | v4.1.2 source (`ResultStage.scala` Scaladoc) |
+| Uniffle Spark 4.x support | **Unverified** — official client guide only documents Spark 2 and 3 JARs; use Celeborn for Spark 4.x | v4.1.2 check |
+
+Full research cache:
+- `docs/research-cache/spark-api-versions.md` — API versions and config defaults
+- `docs/research-cache/spark-source-internals-v412.md` — execution internals, stage types, memory model
 
 **Official doc URLs to consult per chapter:**
 - PySpark API: `https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/`

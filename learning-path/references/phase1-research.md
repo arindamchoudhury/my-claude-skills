@@ -163,7 +163,7 @@ Create `C:\Users\arind\.claude\skills\<topic>-book\SKILL.md`.
 The skill must include:
 1. **YAML frontmatter** — name: `<topic>-book`, trigger description
 2. **Full chapter arc** — all topics from the taxonomy, numbered as chapters, grouped by level
-3. **Standard chapter template** (8 sections: What you'll learn, Problem this solves, Core concept, Examples, Pitfalls, Exercises, Summary, References)
+3. **Chapter writing guidance — NOT a fixed template.** Give the book skill a short set of *invariants* every chapter must satisfy (motivate why the topic matters; teach toward the learning-path milestone; current runnable code; end pointing forward) plus a *toolkit* of optional elements it can draw from (learning outcomes, motivating problem, core-concept prose, worked examples, Mermaid diagrams, reference tables, semantics/edge-case sections, pitfalls, performance notes, exercises, summary, references). State explicitly that chapter structure adapts to the topic type — a setup chapter, an API-family chapter, an architecture chapter, and a tuning chapter each take a different shape. A chapter is fit to its topic, not poured into fixed headings.
 4. **Code standards** — current version imports and patterns
 5. **Current package versions** — verified in Step 5
 6. **Key patterns** — the 5–8 patterns every practitioner needs
