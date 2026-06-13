@@ -138,6 +138,8 @@ Create the full structure at `C:\opt\learn\<topic-slug>\notes\`:
 site_name = "<Topic> Learning Notes"
 site_description = "Personal notes and book from learning <topic>."
 site_author = "arindam@live.com"
+extra_css = ["stylesheets/extra.css"]
+extra_javascript = ["javascripts/sidebar-toggle.js"]
 
 nav = [
     { "Home" = "index.md" },
@@ -150,6 +152,78 @@ nav = [
         { "Resources" = "reference/resources.md" },
     ]},
 ]
+```
+
+### docs/stylesheets/extra.css
+```css
+/* Sidebar collapse */
+.md-sidebar {
+  position: relative;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+.md-sidebar.is-collapsed {
+  width: 1.4rem !important;
+  min-width: 1.4rem !important;
+  overflow: hidden;
+}
+
+.md-sidebar.is-collapsed .md-sidebar__scrollwrap {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.2s, opacity 0.2s;
+}
+
+/* Toggle button */
+.sidebar-toggle {
+  position: absolute;
+  top: 0.6rem;
+  z-index: 10;
+  background: none;
+  border: none;
+  padding: 0.1rem 0.3rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+  line-height: 1;
+}
+
+.sidebar-toggle:hover {
+  color: var(--md-accent-fg-color);
+}
+
+.md-sidebar--primary .sidebar-toggle { right: 0; }
+.md-sidebar--secondary .sidebar-toggle { left: 0; }
+```
+
+### docs/javascripts/sidebar-toggle.js
+```javascript
+(function () {
+  function setup(sidebar, storageKey, collapseChar, expandChar) {
+    var btn = document.createElement('button');
+    btn.className = 'sidebar-toggle';
+    btn.title = 'Toggle sidebar';
+
+    var collapsed = localStorage.getItem(storageKey) === '1';
+    if (collapsed) sidebar.classList.add('is-collapsed');
+    btn.textContent = collapsed ? expandChar : collapseChar;
+
+    btn.addEventListener('click', function () {
+      var nowCollapsed = sidebar.classList.toggle('is-collapsed');
+      localStorage.setItem(storageKey, nowCollapsed ? '1' : '0');
+      btn.textContent = nowCollapsed ? expandChar : collapseChar;
+    });
+
+    sidebar.prepend(btn);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var nav = document.querySelector('.md-sidebar--primary');
+    var toc = document.querySelector('.md-sidebar--secondary');
+    if (nav) setup(nav, 'sidebar-nav-collapsed', '◀', '▶');
+    if (toc) setup(toc, 'sidebar-toc-collapsed', '▶', '◀');
+  });
+})();
 ```
 
 Copy `serve.py`, `Dockerfile`, `docker-compose.yml`, `.gitignore` verbatim from an existing project — these are topic-agnostic.
