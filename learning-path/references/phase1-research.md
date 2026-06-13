@@ -156,10 +156,18 @@ nav = [
 
 ### docs/stylesheets/extra.css
 ```css
-/* Sidebar collapse */
+/* Sidebar collapse — sticky so panels float while main content scrolls */
 .md-sidebar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+.md-sidebar__scrollwrap {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0.2s, opacity 0.2s;
 }
 
 .md-sidebar.is-collapsed {
@@ -171,7 +179,6 @@ nav = [
 .md-sidebar.is-collapsed .md-sidebar__scrollwrap {
   visibility: hidden;
   opacity: 0;
-  transition: visibility 0.2s, opacity 0.2s;
 }
 
 /* Toggle button */
