@@ -47,10 +47,12 @@ Read the topic's entry in `docs/learning-path.md` to see:
 
 Find every source the user has already read that covers this topic:
 
-1. **Grep the notes directory** for the topic name and related terms:
+1. **Grep the reading-notes directory** for the topic name and related terms:
    ```
-   grep -r "window function" docs/books/ docs/topics/ --include="*.md" -l
+   grep -rl "window function" docs/sources/ --include="*.md"
    ```
+   `docs/sources/` is the canonical reading-notes location (see SKILL.md "Canonical project layout");
+   in an older project this is `docs/books/` — grep whatever exists.
 2. **Read those note files** — extract the key concepts, code examples, distinctions, and pitfalls each source contributed
 3. **Check the research cache** (`docs/research-cache/`) for any verified API facts about this topic
 4. **Note what each source emphasised differently** — one book may focus on the API, another on performance, a third on common mistakes. These differences are valuable: the blended chapter should include all three angles.
@@ -216,7 +218,7 @@ Both are equally important. A ✅ mark means "a chapter exists", not "the chapte
    ```
    Re-number subsequent topic codes if inserting mid-sequence (e.g., inserting after B3 shifts B4→B5 etc.). If renumbering is disruptive, use a decimal code instead: `B3a`.
 
-4. **Add it to the book index** (e.g. `docs/spark-book/index.md`) — insert a new `⬜` row at the correct chapter position. Update the chapter numbers of subsequent rows.
+4. **Add it to the book index** (`docs/book/index.md`, or `docs/<topic>-book/index.md` in older projects) — insert a new `⬜` row at the correct chapter position. Update the chapter numbers of subsequent rows.
 
 5. **Add it to the topic-book skill's arc table** (`~/.claude/skills/<topic>-book/SKILL.md`) — insert a row in the chapter arc at the correct position.
 
@@ -257,17 +259,17 @@ Report at the end of Step 7 confirmation:
 After writing the chapter:
 
 1. **`docs/learning-path.md`** — flip the topic heading from `⬜` to `✅`
-2. **Topic-book index** (e.g. `docs/spark-book/index.md`) — flip ⬜ to ✅, add date
+2. **Book index** (`docs/book/index.md`, or `docs/<topic>-book/index.md` in older projects) — flip ⬜ to ✅, add date
 3. **`zensical.toml`** — add chapter entry under the book nav group
 4. **`docs/reference/glossary.md`** — append new terms (source: "Book Ch NN")
-5. **`docs/topics/index.md`** — if this topic was in the backlog, move it to active or mark complete
+5. **`docs/topics/index.md`** — *only if the project has a topic backlog* (older projects do; new scaffolds don't) — move this topic to active or mark complete
 
 ---
 
 ## Step 7 — Confirm to user
 
 ```
-✓ Chapter NN: "<Title>" written → docs/spark-book/ch<NN>-<slug>.md
+✓ Chapter NN: "<Title>" written → docs/book/ch<NN>-<slug>.md
   Learning path: <code> marked ✅
   Sources blended: [list source names]
   New glossary terms: N

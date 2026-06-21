@@ -130,7 +130,20 @@ Note:
 
 ## Step 6: Scaffold notes folder
 
-Create the full structure at `C:\opt\learn\<topic-slug>\notes\`:
+Create the full structure at `C:\opt\learn\<topic-slug>\notes\`, following the canonical layout in
+SKILL.md ("Canonical project layout"). Create these directories up front so Phase 3 has somewhere to
+write: `docs/book/`, `docs/sources/`, `docs/research-cache/`, `docs/reference/`. The chapter and
+reading-note directories use the canonical names (`book/`, `sources/`) — that is what the generated
+`<topic>-book` skill (Step 7) and Phase 3 will expect.
+
+**Create a stub for every page the nav references**, or the Zensical build fails on the first missing
+file. The `zensical.toml` below points at `index.md`, `learning-path.md`, `book/index.md`,
+`reference/glossary.md`, and `reference/resources.md` — Phase 2 fills `learning-path.md`, but the other
+four need at least a one-line stub now:
+- `docs/index.md` — site title + one-line "what this is" + a link to the learning path
+- `docs/book/index.md` — "Book" heading + an empty chapter table (`| Ch | Topic | Status |`) Phase 3 will fill
+- `docs/reference/glossary.md` — "Glossary" heading; terms get appended as chapters are written
+- `docs/reference/resources.md` — "Resources" heading; mirror the Phase 2 "Resources at a glance" table here
 
 ### zensical.toml
 ```toml
@@ -154,86 +167,28 @@ nav = [
 ]
 ```
 
-### docs/stylesheets/extra.css
-```css
-/* Sidebar collapse — sticky so panels float while main content scrolls */
-.md-sidebar {
-  position: sticky;
-  top: 0;
-  align-self: flex-start;
-  transition: width 0.2s ease, min-width 0.2s ease;
-}
+### Custom sidebar + container files — copy from a sibling project, don't hand-write
 
-.md-sidebar__scrollwrap {
-  visibility: visible;
-  opacity: 1;
-  transition: visibility 0.2s, opacity 0.2s;
-}
+The collapsible/sticky sidebar and the container scaffold are topic-agnostic and identical across every
+notes site. Copy them verbatim from an existing `C:\opt\learn\<other-topic>\notes` project (e.g.
+`spark`, `langchain`, `terraform`) rather than pasting from this skill — the sibling copy is the live,
+current version and won't drift:
 
-.md-sidebar.is-collapsed {
-  width: 1.4rem !important;
-  min-width: 1.4rem !important;
-  overflow: hidden;
-}
+- `docs/stylesheets/extra.css`
+- `docs/javascripts/sidebar-toggle.js`
+- `serve.py`, `Dockerfile`, `docker-compose.yml`, `.gitignore`
 
-.md-sidebar.is-collapsed .md-sidebar__scrollwrap {
-  visibility: hidden;
-  opacity: 0;
-}
+The two front-end files are already wired by the `extra_css` / `extra_javascript` lines in the
+`zensical.toml` above.
 
-/* Toggle button */
-.sidebar-toggle {
-  position: absolute;
-  top: 0.6rem;
-  z-index: 10;
-  background: none;
-  border: none;
-  padding: 0.1rem 0.3rem;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: var(--md-default-fg-color--light);
-  line-height: 1;
-}
+What the sidebar gives you (sanity-check after copying):
+- **Maximized window:** both sidebars are sticky, each with a full-width collapse bar at its bottom
+  (`««` nav / `»»` TOC); collapsed → a thin full-height strip with a centered chevron.
+- **Not maximized:** standalone sidebars hide for a clean reading view; Material's native hamburger
+  drawer takes over, with the page TOC injected into the drawer as an "On this page" section.
 
-.sidebar-toggle:hover {
-  color: var(--md-accent-fg-color);
-}
-
-.md-sidebar--primary .sidebar-toggle { right: 0; }
-.md-sidebar--secondary .sidebar-toggle { left: 0; }
-```
-
-### docs/javascripts/sidebar-toggle.js
-```javascript
-(function () {
-  function setup(sidebar, storageKey, collapseChar, expandChar) {
-    var btn = document.createElement('button');
-    btn.className = 'sidebar-toggle';
-    btn.title = 'Toggle sidebar';
-
-    var collapsed = localStorage.getItem(storageKey) === '1';
-    if (collapsed) sidebar.classList.add('is-collapsed');
-    btn.textContent = collapsed ? expandChar : collapseChar;
-
-    btn.addEventListener('click', function () {
-      var nowCollapsed = sidebar.classList.toggle('is-collapsed');
-      localStorage.setItem(storageKey, nowCollapsed ? '1' : '0');
-      btn.textContent = nowCollapsed ? expandChar : collapseChar;
-    });
-
-    sidebar.prepend(btn);
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var nav = document.querySelector('.md-sidebar--primary');
-    var toc = document.querySelector('.md-sidebar--secondary');
-    if (nav) setup(nav, 'sidebar-nav-collapsed', '◀', '▶');
-    if (toc) setup(toc, 'sidebar-toc-collapsed', '▶', '◀');
-  });
-})();
-```
-
-Copy `serve.py`, `Dockerfile`, `docker-compose.yml`, `.gitignore` verbatim from an existing project — these are topic-agnostic.
+All custom sidebar CSS is scoped to `body.is-maximized` so it never fights Material's narrow drawer;
+`isMaximized()` keys off `window.outerWidth >= screen.availWidth`.
 
 ---
 
@@ -242,7 +197,12 @@ Copy `serve.py`, `Dockerfile`, `docker-compose.yml`, `.gitignore` verbatim from 
 Create `C:\Users\arind\.claude\skills\<topic>-book\SKILL.md`.
 
 The skill must include:
-1. **YAML frontmatter** — name: `<topic>-book`, trigger description
+1. **YAML frontmatter** — name: `<topic>-book`, plus a *trigger description* that actually fires. The
+   description is the only thing that decides whether this skill activates, so make it concrete and a
+   little pushy: name the chapter-writing action ("write/draft/review a chapter in the personal
+   `<Topic>` book"), enumerate the topic codes from the arc (e.g. "B1–B7, I1–I8, A1–A7, E1–E9"), and
+   list real trigger phrases ("write the chapter for X", "I finished topic B3", "I just learned about
+   <topic concept>", "add a chapter on <concept>"). A bare "trigger description" will under-fire.
 2. **Full chapter arc** — all topics from the taxonomy, numbered as chapters, grouped by level
 3. **Chapter writing guidance — NOT a fixed template.** Give the book skill a short set of *invariants* every chapter must satisfy (motivate why the topic matters; teach toward the learning-path milestone; current runnable code; end pointing forward) plus a *toolkit* of optional elements it can draw from (learning outcomes, motivating problem, core-concept prose, worked examples, Mermaid diagrams, reference tables, semantics/edge-case sections, pitfalls, performance notes, exercises, summary, references). State explicitly that chapter structure adapts to the topic type — a setup chapter, an API-family chapter, an architecture chapter, and a tuning chapter each take a different shape. A chapter is fit to its topic, not poured into fixed headings.
 4. **Code standards** — current version imports and patterns

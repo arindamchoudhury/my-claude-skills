@@ -297,8 +297,22 @@ You are ready to advance when you can:
 
 Update `zensical.toml` — `learning-path.md` must be in the nav.
 
+**Verify the site builds before claiming the scaffold is done.** This is the first point where every
+nav entry has a real file behind it, so it's the moment to catch a broken nav, a missing stub, or a
+bad TOML edit. Run the project's build and confirm it exits clean:
+
+```
+python -m venv .venv && .venv\Scripts\python -m pip install zensical   # first time only
+.venv\Scripts\python -m zensical build
+```
+
+(Or `docker compose up` if the project uses the Docker flow.) A non-zero exit or an error about a
+missing/duplicate nav target means a stub from Phase 1 Step 6 is missing or `zensical.toml` is
+malformed — fix it before reporting success. Don't announce a working site you haven't built.
+
 Tell the user:
 - Learning path written at `docs/learning-path.md`
 - How many topics across how many levels
 - Which topic to start with (B1)
+- That the site builds clean
 - How to trigger Phase 3: "When you finish a topic, tell me what you completed and I'll write the book chapter"

@@ -340,6 +340,207 @@ Thumbs.db
 
 ---
 
+## Sidebar collapse + hamburger-as-TOC (recommended)
+
+Add this to every site for a better reading experience. Wire it into `zensical.toml`:
+
+```toml
+extra_css = ["stylesheets/extra.css"]
+extra_javascript = ["javascripts/sidebar-toggle.js"]   # add alongside any mathjax entries
+```
+
+Behaviour:
+- **Maximized window:** both sidebars are sticky; each gets a full-width collapse bar pinned at its bottom (`««` nav / `»»` TOC). Collapsed → a thin full-height strip with a bold chevron centered vertically (always clickable to re-expand).
+- **Not maximized:** standalone sidebars hide for a clean reading view; Material's native hamburger drawer takes over, with the page TOC injected into it as an "On this page" section — so the hamburger doubles as the table of contents.
+
+All custom CSS is scoped to `body.is-maximized` so it never fights Material's native narrow drawer.
+
+### `docs/stylesheets/extra.css`
+
+```css
+/* ---- Maximized window: custom sticky/collapsible sidebars ---- */
+/* All custom sidebar layout is scoped to .is-maximized so it never */
+/* interferes with Material's native slide-out drawer on narrow widths. */
+body.is-maximized .md-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+body.is-maximized .md-sidebar__scrollwrap {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0.2s, opacity 0.2s;
+}
+
+/* Full-height strip so the centered chevron has a box to anchor in. */
+body.is-maximized .md-sidebar.is-collapsed {
+  width: 1.9rem !important;
+  min-width: 1.9rem !important;
+  height: 100vh !important;
+  overflow: hidden;
+  border-right: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Drop nav content from layout; the strip height comes from height:100vh. */
+body.is-maximized .md-sidebar.is-collapsed .md-sidebar__scrollwrap {
+  display: none !important;
+}
+
+/* Collapsed: chevron rail, vertically centered in the viewport. */
+body.is-maximized .md-sidebar.is-collapsed .sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  bottom: auto;
+  transform: translateY(-50%);
+  width: auto;
+  margin: 0 0.2rem;
+  padding: 0.4rem 0;
+  border: none;
+  border-radius: 0.3rem;
+  background: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--md-default-fg-color--light);
+  transition: background-color 125ms, color 125ms;
+}
+
+body.is-maximized .md-sidebar.is-collapsed .sidebar-toggle:hover {
+  background: var(--md-default-bg-color--light, rgba(0, 0, 0, 0.05));
+  color: var(--md-accent-fg-color);
+}
+
+/* Toggle button: full-width bar pinned to the bottom of the sidebar.   */
+/* Only shown for the maximized sticky sidebars.                        */
+body.is-maximized .sidebar-toggle {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.45rem;
+  background: var(--md-default-bg-color);
+  border: none;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  cursor: pointer;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+  color: var(--md-default-fg-color--light);
+  line-height: 1;
+}
+
+body.is-maximized .sidebar-toggle:hover {
+  color: var(--md-accent-fg-color);
+}
+
+/* Hide the collapse button inside the narrow drawer */
+body:not(.is-maximized) .sidebar-toggle { display: none !important; }
+
+/* ---- Not maximized: hide standalone sidebars (reading view) ---- */
+/* CSS fallback before JS adds .is-maximized; JS re-shows the primary */
+/* sidebar as the drawer when the hamburger is open. */
+body:not(.is-maximized) .md-sidebar--secondary {
+  display: none !important;
+}
+```
+
+### `docs/javascripts/sidebar-toggle.js`
+
+```javascript
+(function () {
+  // outerWidth >= availWidth when Windows maximizes (invisible resize border extends off-screen)
+  function isMaximized() {
+    return window.outerWidth >= screen.availWidth;
+  }
+
+  function injectToc(nav, toc) {
+    if (nav.querySelector('#_toc-inject')) return;
+    var tocInner = toc.querySelector('.md-sidebar__inner') || toc.querySelector('nav');
+    if (!tocInner) return;
+    var div = document.createElement('div');
+    div.id = '_toc-inject';
+    div.style.cssText = 'margin-top:1rem;padding-top:1rem;border-top:1px solid var(--md-default-fg-color--lightest)';
+    div.innerHTML = '<div style="font-size:.7rem;font-weight:700;padding:0 .6rem;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.1em;color:var(--md-default-fg-color--light)">On this page</div>' + tocInner.innerHTML;
+    var wrap = nav.querySelector('.md-sidebar__scrollwrap');
+    if (wrap) wrap.appendChild(div);
+  }
+
+  function removeInjectedToc(nav) {
+    if (!nav) return;
+    var el = nav.querySelector('#_toc-inject');
+    if (el) el.remove();
+  }
+
+  function applyState() {
+    var max = isMaximized();
+    var drawer = document.getElementById('__drawer');
+    var drawerOpen = !max && !!drawer && drawer.checked;
+    var nav = document.querySelector('.md-sidebar--primary');
+    var toc = document.querySelector('.md-sidebar--secondary');
+
+    document.body.classList.toggle('is-maximized', max);
+
+    if (max) {
+      if (nav) nav.style.setProperty('display', '', 'important');
+      if (toc) toc.style.setProperty('display', '', 'important');
+      removeInjectedToc(nav);
+    } else if (drawerOpen) {
+      // Let Material show nav drawer; inject TOC into it; hide standalone TOC sidebar.
+      // Must be explicit block !important to beat the CSS fallback hide rule.
+      if (nav) nav.style.setProperty('display', 'block', 'important');
+      if (toc) toc.style.setProperty('display', 'none', 'important');
+      if (nav && toc) injectToc(nav, toc);
+    } else {
+      if (nav) nav.style.setProperty('display', 'none', 'important');
+      if (toc) toc.style.setProperty('display', 'none', 'important');
+      removeInjectedToc(nav);
+    }
+  }
+
+  function setup(sidebar, storageKey, collapseChar, expandChar) {
+    var btn = document.createElement('button');
+    btn.className = 'sidebar-toggle';
+    btn.title = 'Toggle sidebar';
+
+    var collapsed = localStorage.getItem(storageKey) === '1';
+    if (collapsed) sidebar.classList.add('is-collapsed');
+    btn.textContent = collapsed ? expandChar : collapseChar;
+
+    btn.addEventListener('click', function () {
+      var nowCollapsed = sidebar.classList.toggle('is-collapsed');
+      localStorage.setItem(storageKey, nowCollapsed ? '1' : '0');
+      btn.textContent = nowCollapsed ? expandChar : collapseChar;
+    });
+
+    sidebar.appendChild(btn);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    applyState();
+
+    var nav = document.querySelector('.md-sidebar--primary');
+    var toc = document.querySelector('.md-sidebar--secondary');
+    if (nav) setup(nav, 'sidebar-nav-collapsed', '««', '»»');
+    if (toc) setup(toc, 'sidebar-toc-collapsed', '»»', '««');
+
+    var drawer = document.getElementById('__drawer');
+    if (drawer) drawer.addEventListener('change', applyState);
+  });
+
+  window.addEventListener('load', function () { setTimeout(applyState, 100); });
+  window.addEventListener('resize', applyState);
+})();
+```
+
+---
+
 ## After scaffolding
 
 Tell the user the site is ready and how to run it. Then proceed straight into whichever chapter they asked for using `note-style.md` as the guide. Remind them that topic pages live in the backlog until a second book covers the same ground.

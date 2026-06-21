@@ -61,8 +61,18 @@ Scaffold the project structure, then proceed as flavor 2.
 ### 2. Adding a new source (URL or PDF)
 1. **Check cache first.** For URLs: check `cache/web/<slug>.txt`. For PDFs: check `cache/pdf/<slug>.txt`. If present, read directly — skip fetching/extraction.
 2. **Fetch or extract if cache is missing.**
-   - URL: use `WebFetch` to get the page content, then save to `cache/web/<slug>.txt`.
+   - URL: use `WebFetch` with an **exhaustive verbatim prompt** (see below), then save to `cache/web/<slug>.txt`.
    - PDF: extract using pymupdf (available in the `notes-fetch` conda env) — see PDF intake workflow below.
+
+   **WebFetch prompt discipline — always use this exact pattern:**
+
+   > Extract the complete verbatim content of every section on this page. Do not summarize or paraphrase anything. Include every bullet point, every caveat, every condition, every fallback behavior ("if X then Y"), every note, callout, and warning, and every code example — all quoted exactly as written on the page. I need the full text of every section.
+
+   Then do a **second targeted fetch** for any section that describes conditional or fallback behavior, quoting it word-for-word:
+
+   > Quote the complete verbatim text of [section name], including every caveat, fallback, and parenthetical. Do not summarize.
+
+   **Why:** a summarizing WebFetch prompt omits critical caveats (e.g. "falls back to full refresh if results cannot be computed incrementally"). The notes must capture these conditions exactly — they are often the most important part.
 3. **Determine the course folder.** Check `docs/sources/` for an existing folder that matches this source's course. If none exists, create `docs/sources/<course-slug>/` and write a `docs/sources/<course-slug>/index.md` course overview page.
 4. **Write the source note** to `docs/sources/<course-slug>/<slug>.md` using the note style below.
 5. **Update the source log** (`docs/sources/index.md`) — add a row under the correct course section.
@@ -94,6 +104,7 @@ Each `docs/sources/<slug>.md` has this structure:
 
 > **Source:** [<display URL or filename>](<URL>)
 > **Added:** YYYY-MM-DD
+> **Source updated:** YYYY-MM-DD
 > **Tags:** tag1, tag2, tag3
 > **Type:** article | documentation | paper | blog | other
 
@@ -164,6 +175,27 @@ Before writing a source note, read the existing source notes that cover related 
 - **Use the Related sources section for cross-links**, not just as a list — annotate *how* the sources relate (confirms, contradicts, extends, provides detail for, zooms out from).
 
 This same blending rule applies when extending existing source notes (e.g. after re-fetching with new content): merge new material into the existing structure, don't append independent sections.
+
+## Tracking source freshness
+
+The `**Source updated:**` field records the date the source page was last updated (as shown on the page — not when you captured it). Always capture this date when taking notes from documentation pages.
+
+**How to find the date:**
+- Documentation pages (Databricks, AWS, etc.): look for "Last updated" near the page title or footer. Fetch with `WebFetch` and check the returned text.
+- Articles/blog posts: use the publication or last-revised date. If absent, omit the field.
+- PDFs: use the publication date from the cover or copyright page.
+
+**Staleness check script** (Databricks notes project): `scripts/check-docs-freshness.py`
+
+```bash
+python scripts/check-docs-freshness.py                          # check all source notes
+python scripts/check-docs-freshness.py --course databricks-docs # one course folder
+python scripts/check-docs-freshness.py --skip-fetch             # metadata only, no HTTP
+```
+
+The script parses `**Source:**` URLs and `**Source updated:**` dates from all notes, fetches each live page, and reports STALE / OK / NEEDS-CLAUDE. Databricks docs are JavaScript-rendered — static HTTP fetch cannot read their "Last updated" date; those pages are flagged with a ready-to-paste Claude prompt.
+
+**When Claude verifies freshness:** ask Claude to `WebFetch` each flagged URL and compare the live "Last updated" date against the note's `**Source updated:**` field. Update the field and note any content changes.
 
 ## Source log format (`docs/sources/index.md`)
 
@@ -240,16 +272,29 @@ Place the iframe at the **top of the Notes section**, before the first subsectio
 
 The fetch script also extracts content image URLs via `extract_images()`. Images ≥ 200×100 px are collected; data URIs and tiny icons are skipped. They are appended to the cache file as an `=== Images ===` section, one Markdown image tag per line with dimensions noted.
 
-**When writing source notes:** embed diagrams and screenshots that add genuine value (architecture diagrams, workflow charts, taxonomy tables). Use the original URL directly — no need to download:
+**Always download images locally — never link external URLs directly.** Links rot, the site breaks offline, and notes become incomplete without network access.
 
-```markdown
-![Gemini Enterprise orchestrator diagram](https://storage.googleapis.com/...)
-*Caption describing what the diagram shows.*
-```
+**Workflow:**
 
-Place images at the logical point in the Notes section (e.g., inside the subsection they illustrate), not at the end. Only include images that meaningfully add to the text — skip decorative or redundant visuals.
+1. For each meaningful image URL (architecture diagrams, workflow charts, UI screenshots — skip decorative/redundant visuals), download it to `docs/sources/<course-slug>/assets/<slug>/`:
 
-**Before fetching, always verify the URL resolves.** Fetch or WebFetch the URL first; if it errors or redirects, tell the user before writing any notes.
+    ```powershell
+    New-Item -ItemType Directory -Force "docs/sources/<course-slug>/assets/<slug>"
+    Invoke-WebRequest -Uri $url -OutFile "docs/sources/<course-slug>/assets/<slug>/01-breakpoints.gif"
+    ```
+
+2. Reference images using **relative paths** and wrap each in a link to itself so the reader can click to enlarge:
+
+    ```markdown
+    [![Breakpoints in the cell gutter](assets/notebook-debugger/01-breakpoints.gif)](assets/notebook-debugger/01-breakpoints.gif)
+    *Caption describing what the image shows.*
+    ```
+
+3. Name files descriptively (`01-breakpoints.gif`, `02-variable-explorer.png`) — not generic names like `image1.png`.
+
+4. Place each image at the logical point in the Notes section where it illustrates the concept — not at the end.
+
+**Before downloading, verify the URL resolves.** Use `WebFetch` on the URL first; if it errors or redirects, tell the user before writing any notes.
 
 ## Search result cache
 
@@ -583,7 +628,8 @@ The user drops PDFs into `C:\opt\learn\agent\take-note` and says "take note". Pr
 
 ## Anti-patterns to avoid
 
-- **Don't dump raw fetched text** into the notes. Summarize and paraphrase.
+- **Don't use a summarizing WebFetch prompt.** Always ask for verbatim content. A prompt like "what does this page cover?" silently drops caveats, fallback conditions, and qualifications that are often the most important detail. Use the exhaustive verbatim prompt in step 2 above.
+- **Don't dump raw fetched text** into the notes. Summarize and paraphrase — but only *after* you have captured all verbatim detail from the fetch. Compress for readability; never compress away conditions or fallbacks.
 - **Don't re-fetch a URL if the cache exists.** Check `cache/web/<slug>.txt` first.
 - **Don't re-extract a PDF if the cache exists.** Check `cache/pdf/<slug>.txt` first.
 - **Don't create topic pages with only one source.** Put them in the backlog.
@@ -591,4 +637,5 @@ The user drops PDFs into `C:\opt\learn\agent\take-note` and says "take note". Pr
 - **Don't write topic pages without cross-links.** Source notes and topic pages must link to each other bidirectionally.
 - **Don't assert version-specific facts from training data.** Web-search to verify.
 - **Don't include unverified URLs in notes.** Check every link with `WebFetch` before writing it.
+- **Don't link images from external URLs.** Always download to `docs/sources/<course-slug>/assets/<slug>/` and reference with a relative path. External image links rot and break the site offline.
 - **Don't leave ⚠️ Partial capture warnings in notes permanently.** Delete the cache file, fix the fetch script if needed, re-fetch, and update the note. A partial capture that stays in the notes becomes a permanent gap.
