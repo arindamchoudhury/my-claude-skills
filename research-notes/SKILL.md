@@ -391,6 +391,18 @@ nav = [
 
 **Nav convention:** The section is called **Notes** (not Sources). Each note entry is prefixed with its sequence number (`1.`, `2.`, `3.`…) so the reader can navigate in order. Assign numbers in the order notes are added; don't renumber existing entries when adding new ones.
 
+**Documentation-site sources — group nav by the page's own breadcrumb.** When a course's sources are pages from a documentation site (Databricks, AWS, Google Cloud, etc.), each page carries a breadcrumb at the top (e.g. `Tables › Table types › External tables`). Mirror that breadcrumb in the `zensical.toml` nav instead of a flat numbered list — the docs team's own information architecture is almost always better than an ad-hoc one, and it makes notes easy to locate against the live docs.
+
+Rules:
+
+- **The nav group = the breadcrumb root**, not the URL path segment. They often differ — read the real breadcrumb, don't infer from the URL. (Examples seen on Databricks: every `…/optimizations/*` page breadcrumbs under **Tables › Optimization and performance**; the Spark-UI troubleshooting pages under `…/optimizations/spark-ui-guide/*` breadcrumb under **Compute › Classic compute › Troubleshoot**.)
+- **Capture the breadcrumb when you fetch.** `fetch_page.py` saves it as the first line of `cache/web/<slug>.txt` (segments concatenated, e.g. `TablesTable typesExternal tables`). To regroup an existing course, read the first line of every cache file at once: `for f in cache/web/*.txt; do echo -n "${f}:: "; head -1 "$f"; done`.
+- **Nest sub-groups to match breadcrumb depth** — but only add an intermediate level when its parent is *itself a captured page* (give that page an `"Overview"` entry, then nest its children under it) **or** the level has **≥2 children**. A breadcrumb level that is pure taxonomy with a single child and no captured overview page stays flat — don't bury one note under an empty header.
+- **Label leaf entries by the breadcrumb leaf** (the page's own title), not a re-invented name.
+- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, then confirm every note file still appears exactly once in nav.
+
+This breadcrumb-grouping rule replaces the flat sequence-numbered list **for documentation-site courses only**. Article/blog/paper courses keep the numbered-Notes convention above.
+
 ### `docs/index.md`
 ```markdown
 # Research Notes
