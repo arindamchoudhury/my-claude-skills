@@ -95,6 +95,24 @@ User asks a question, gets an answer, then says "add that to my notes":
 2. Insert a new section at the logical location — styled to match surrounding notes.
 3. If a topic page is relevant, add a reference there too.
 
+### 5. Coverage-gap check → note → learning-path fold-in
+
+**TRIGGER:** user shares a documentation URL and asks some form of *"do we have this in the learning path?"* / *"is this covered?"* — in a project that has BOTH `docs/sources/` (research notes) and `docs/learning-path.md` (a learning-path project, e.g. the Databricks notes). This is the full loop the two skills run together; don't stop at answering the coverage question.
+
+Run these steps in order. Don't skip the fold-in just because the answer to step 1 is "kind of":
+
+1. **Coverage check.** Grep `docs/learning-path.md` for the concept. Classify the result honestly:
+   - **Absent** — not mentioned → gap.
+   - **Name-dropped** — appears only inside a feature list / callout, never explained → still a gap (this is the most common and most missable case).
+   - **Covered** — a topic already scopes it with its own reference/milestone → no note needed; say so and stop.
+2. **Fetch** the page with `fetch_page.py` (NOT `WebFetch` for JS-rendered doc sites — see "Fetching web pages"). Read `cache/web/<slug>.txt`. Its **first line is the breadcrumb** (segments concatenated).
+3. **Write the source note** (flavor 2 note style). Set `**Source updated:**` from the page's "Last updated" line. Cross-link related notes with `[[slug]]`.
+4. **Wire in by breadcrumb** — nav group = breadcrumb root (see the breadcrumb-grouping rule under Nav convention), course index, source log.
+5. **Fold into the learning path (Phase 5).** This is the step the coverage question exists to set up — do not omit it. Add the note as a **reference** under the topic(s) it informs; add a dated callout if it introduces a new distinction/version/rename; bump the `learning-path.md` header `Last updated` line with a one-line changelog. A note landing ≠ topic completion — leave the topic's ⬜/✅ status unless a chapter was actually written. This mirrors **learning-path skill, Phase 5** — load it if available; the steps here are the same diff-one-note reconcile.
+6. **Validate + commit.** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, confirm every note file appears once in nav, then commit the note + path edits together.
+
+**Why this is one flavor, not two separate asks:** "do we have X?" is almost always a request to *close the gap*, not just report it. Reporting "no, we don't" and stopping is the failure mode — the user then has to ask again. If coverage is genuinely complete, say so and stop; otherwise run the loop through the commit.
+
 ## Note style for a source file
 
 Each `docs/sources/<slug>.md` has this structure:
