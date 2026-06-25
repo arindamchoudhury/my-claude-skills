@@ -158,6 +158,7 @@ Instead, every chapter must satisfy a few **invariants**, and otherwise draws fr
 - Opens by establishing why the topic matters — the problem it solves or the capability it unlocks. The reader should know within the first screen why they're here.
 - Teaches toward the learning-path milestone for this topic. When the reader finishes, they can do the thing the milestone names.
 - All code is current (Spark 4.x / Python 3.10+), complete, and runnable — no deprecated APIs, no `# ...` truncation.
+- Prose is built from short sentences — one idea per sentence, not long clause-stacked ones. Easier to read and to revise.
 - Ends pointing forward — the closing lines connect to the next topic or to what this chapter unlocks.
 
 **Toolkit — use the elements the topic needs, in the order that serves it:**

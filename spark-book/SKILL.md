@@ -198,6 +198,7 @@ One paragraph: what this chapter is about and why the topic matters.
 - Opens by establishing why the topic matters — the problem it solves or the capability it unlocks. The reader knows within the first screen why they're here.
 - Teaches toward the learning-path milestone for this topic. When done, the reader can do what the milestone names.
 - All code is current (Spark 4.1.x / Python 3.10+), complete, and runnable — see Code Standards below.
+- Prose is built from short sentences — one idea per sentence, not long clause-stacked ones. Easier to read and to revise.
 - Ends pointing forward — the closing lines connect to the next topic or to what this chapter unlocks.
 
 ### Toolkit — use the elements the topic needs, in the order that serves it

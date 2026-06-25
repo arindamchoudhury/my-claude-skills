@@ -83,6 +83,8 @@ For each verified gap:
    > "The [topic details] are covered in **Chapter NN (code — Title)**."
 
 ### Content conventions
+- Short sentences over overloaded ones — one fact per sentence; split a clause-heavy
+  sentence into several
 - American English throughout (never: optimise, serialise, behaviour, materialise,
   synchronise, recognise, colour, favour)
 - Mermaid diagrams for architecture, flows, pipelines — never ASCII art

@@ -132,6 +132,7 @@ Every chapter must satisfy these — regardless of shape:
 2. **Teach toward the milestone** — the chapter's scope exactly matches the learning-path milestone for this topic; don't go wider.
 3. **Current runnable code** — all code examples use DBR 18 / Spark 4.1 imports and APIs. Flag anything that changed from a prior version.
 4. **End pointing forward** — the final paragraph connects this topic to what comes next in the learning path.
+5. **Short sentences over overloaded ones** — one idea per sentence, not long clause-stacked ones; easier to read and to revise.
 
 ---
 

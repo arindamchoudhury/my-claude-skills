@@ -149,6 +149,7 @@ Use headers (`###`) for major sections worth separating.
 ```
 
 **Style rules:**
+- **Short sentences over overloaded ones.** Prefer several short declarative sentences to one long clause-stacked one. One fact per sentence — easier to skim and revise later.
 - Paraphrase ideas in your own words. Short quotes only where the exact wording matters.
 - No wall-of-text dumps from the source. The notes should be 20–40% the length of the source.
 - Mark uncertain claims with `> ❓ Unverified:` rather than stating them as fact.

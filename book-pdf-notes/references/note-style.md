@@ -117,6 +117,7 @@ These are deliberately lightweight — Zensical doesn't require a special syntax
 Write in your voice, in your language. The notes are for *you*, six months from now. That means:
 
 - Prefer "the postmaster forks a backend per connection" over "PostgreSQL utilizes a multi-process architecture wherein the postmaster process spawns dedicated backend processes for each incoming client connection."
+- **Short sentences over overloaded ones.** Prefer several short declarative sentences to one long sentence packed with clauses. One fact per sentence. Easier to skim and to revise later.
 - It's fine to add your own observations and aha-moments; mark them clearly so they don't get confused with the source: `> 💭 (mine):` or just inline italics.
 - Don't mimic the book's marketing language ("rock-solid", "world-class") unless that's a quote that you're keeping for color.
 

@@ -181,6 +181,7 @@ Use the code as the skeleton — prose explains what the code shows.
 
 ### Step 3 — Write the prose
 Fill in around the code. Keep prose tight:
+- Short sentences over overloaded ones — one idea per sentence; split a clause-stacked sentence into several
 - One idea per paragraph
 - No restating what the code already shows
 - Use bold for the first mention of every new term

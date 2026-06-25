@@ -176,6 +176,8 @@ If nothing changed: omit this section.
 - [[book-chapter-slug]] — full pedagogical treatment
 ```
 
+**Style:** short sentences over overloaded ones — one fact per sentence; split a clause-heavy sentence into several. Easier to skim and revise later.
+
 ### Step 5: Write the book chapter
 
 File: `docs\book\ch<NN>-<slug>.md`
