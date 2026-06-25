@@ -181,6 +181,14 @@ current version and won't drift:
 The two front-end files are already wired by the `extra_css` / `extra_javascript` lines in the
 `zensical.toml` above.
 
+**`serve.py` wikilink resolver — must use a prebuilt slug index, not a glob per link.** `serve.py`
+patches the Markdown `wikilinks` extension to resolve `[[slug]]` against the actual files in `docs/`.
+The resolver MUST build a `{slug: url}` dict once per `build()` (a single recursive walk of `docs/`)
+and have `build_url` do an O(1) dict lookup. Do NOT `glob.glob(docs/**/<slug>.md)` per link — that is
+O(links × tree) every rebuild and makes live-reload crawl once a site has dozens of cross-linked notes.
+Confirm the sibling's `serve.py` has `_refresh_slug_index()` (called at the top of `build()`) before
+copying; if it still globs per link, copy a fixed sibling instead.
+
 What the sidebar gives you (sanity-check after copying):
 - **Maximized window:** both sidebars are sticky, each with a full-width collapse bar at its bottom
   (`««` nav / `»»` TOC); collapsed → a thin full-height strip with a centered chevron.
