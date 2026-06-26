@@ -115,7 +115,9 @@ Run these steps in order. Don't skip the fold-in just because the answer to step
 
 ## Note style for a source file
 
-Each `docs/sources/<slug>.md` has this structure:
+**Note structure is dynamic — mirror the source page, don't impose a skeleton.** A note's body follows the *source's own* headings, sections, tables, images, and order — not a fixed `Summary / Key points / Notes / Quotes / Related sources` template. Keep only the metadata header (Source / Added / Source updated / Tags / Type) and a light trailing line of `[[wikilink]]` cross-references; everything between is shaped by the page. A short page gets a short note; a page with four sections gets four sections.
+
+The **only** fixed part is the metadata header and the trailing cross-links:
 
 ```markdown
 # <Title>
@@ -126,27 +128,13 @@ Each `docs/sources/<slug>.md` has this structure:
 > **Tags:** tag1, tag2, tag3
 > **Type:** article | documentation | paper | blog | other
 
-## Summary
-One paragraph — the core argument or main takeaway of the source.
+<body — mirrors the source's own headings/sections/tables/images/order>
 
-## Key points
-- Bullet list of the most important ideas, claims, or findings.
-- Keep each bullet concise; expand in sub-bullets only when needed.
-
-## Notes
-Structured prose or subsections mirroring the source's own sections.
-Use headers (`###`) for major sections worth separating.
-
-## Quotes worth keeping
-> "Exact quote from the source." (section or page reference)
-
-## Open questions
-- Things this source raised but didn't answer.
-- Contradictions with other sources.
-
-## Related sources
-- [[other-slug]] — one-line note on the relationship
+---
+Related: [[other-slug]] — one-line note on the relationship.
 ```
+
+**Do not** start from a `Summary / Key points / Notes / Quotes worth keeping / Open questions / Related sources` skeleton. Those headings are only valid when the source itself is organized that way. Let the page's structure drive the note's structure.
 
 **Style rules:**
 - **Short sentences over overloaded ones.** Prefer several short declarative sentences to one long clause-stacked one. One fact per sentence — easier to skim and revise later.
@@ -191,7 +179,7 @@ Before writing a source note, read the existing source notes that cover related 
 - **Don't re-capture what's already there.** If an existing note already explains concept X, say "confirms [[other-slug]]'s point on X" or "see [[other-slug]]" rather than writing it out again.
 - **Do capture what's genuinely new or different.** A new angle, a better example, a contradiction, a more precise definition — these deserve their own prose.
 - **Call out contradictions and differences explicitly.** If this source frames something differently from an existing note, name the difference: "Unlike [[other-slug]] which says X, this source argues Y."
-- **Use the Related sources section for cross-links**, not just as a list — annotate *how* the sources relate (confirms, contradicts, extends, provides detail for, zooms out from).
+- **Annotate the trailing `[[wikilink]]` cross-links** — don't just list slugs; say *how* the sources relate (confirms, contradicts, extends, provides detail for, zooms out from).
 
 This same blending rule applies when extending existing source notes (e.g. after re-fetching with new content): merge new material into the existing structure, don't append independent sections.
 

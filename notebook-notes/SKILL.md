@@ -138,16 +138,10 @@ description: <one-line summary>
 
 > 📌 **Full explained chapter:** [[<book-chapter-slug>]]
 
-## Summary
-What this notebook demonstrates and why it matters.
+<body — mirrors the notebook's own flow: one section per major topic/cell-group,
+in the order the notebook presents them>
 
-## Key points
-- Bullet list of the most important concepts demonstrated.
-- One bullet per concept — be specific.
-
-## Notes
-
-### <Major Topic 1>
+### <Major Topic 1 — taken from the notebook's own structure>
 
 Brief explanation of what this topic is, then code:
 
@@ -164,17 +158,11 @@ Key detail worth knowing: ...
 ### <Major Topic 2>
 ...
 
-## Deprecations / version notes
-List anything that changed between what the notebook shows and the current release.
-If nothing changed: omit this section.
-
-## Open questions
-- Things the notebook raised but didn't explain.
-
-## Related sources
-- [[previous-lesson]] — what it covered
-- [[book-chapter-slug]] — full pedagogical treatment
+---
+Related: [[previous-lesson]] — what it covered · [[book-chapter-slug]] — full pedagogical treatment.
 ```
+
+**Note structure is dynamic — mirror the notebook, don't impose a skeleton.** The research note is the source-faithful reference. Its body follows the *notebook's own* order of topics/cells, not a fixed `Summary / Key points / Notes / Open questions / Related` template. Keep only the metadata header (Source / Notebooks / Added / Tags / Type), the book-chapter pointer, and a trailing line of `[[wikilink]]` cross-references; everything between mirrors the notebook. A short notebook gets a short note. Add a `## Deprecations / version notes` section only when the notebook diverges from the current release; omit it otherwise. (The pedagogical scaffolding — Summary, Key points, Best practices, Exercises — belongs in the **book chapter** at Step 5, not here.)
 
 **Style:** short sentences over overloaded ones — one fact per sentence; split a clause-heavy sentence into several. Easier to skim and revise later.
 
@@ -190,44 +178,25 @@ File: `docs\book\ch<NN>-<slug>.md`
 > **Version:** <package versions, e.g. "langchain 1.3.2 · langgraph 1.2.2">
 > **Added:** YYYY-MM-DD
 
-## What you'll learn
-3–5 bullet points of concrete outcomes the reader will achieve.
-
-## The problem this solves
-One paragraph — WHY this exists. What would break or be harder without it.
-Ground it in a real scenario.
-
-## Core concept
-200–400 words. The mental model.
-- Use analogies where helpful
-- Explain design decisions (why was it built this way?)
-- Comparison tables for alternatives (e.g. cloud vs local models)
-
-## Code examples
-Build from minimal → complete. One new idea per example.
-Rules:
-- Every example is complete and runnable (all imports, load_dotenv())
-- Add version comment: `# <package> <version> (Month Year)`
-- Show actual output where helpful (from notebook outputs)
-- If the notebook used a deprecated pattern, show the current equivalent and note it
-
-## Best practices
-3–5 bullet points derived from docs research — not from the notebook itself.
-These are what the notebook didn't tell you but should have.
-
-## Common pitfalls
-3–5 bullets: what goes wrong, why, how to fix it.
-Draw from: deprecation notes, parameter gotchas, provider-specific quirks.
-
-## Exercises
-1. **Recall** — answerable from reading (tests understanding)
-2. **Apply** — requires running code (tests skill)
-3. **Extend** — open-ended, no single right answer (tests creativity)
-
-## Summary
-3–5 bullets recapping what was covered.
-Last sentence: "The next chapter builds on this by..."
+<body — structure follows the notes taken and the notebook's own flow,
+not a fixed template. Order and select sections so the chapter teaches
+*this* notebook well. A short notebook gets a short chapter.>
 ```
+
+**Chapter structure is dynamic — let the notes drive it.** The book chapter is a teaching artifact, but "teaching" doesn't mean a fixed skeleton. Shape it around what the notebook actually covers and what the research note captured. Mirror the notebook's topic flow; teach each topic where it falls.
+
+The elements below are a **menu to draw from when the material warrants them** — not required sections, not a fixed order. Use the ones that serve this notebook; drop the ones that don't; add others the notebook calls for. A notebook demonstrating one tight concept might be intro → one worked example → pitfalls. A broad notebook might interleave several concept/example pairs.
+
+- **What you'll learn** — concrete outcomes, when the chapter is big enough that a roadmap helps.
+- **The problem this solves** — WHY this exists; the real scenario that motivates it.
+- **Core concept / mental model** — analogies, design rationale, comparison tables for alternatives.
+- **Code examples** — build minimal → complete, one new idea each. Every example complete and runnable (all imports, `load_dotenv()`), version comment `# <package> <version> (Month Year)`, show real output where it helps. If the notebook used a deprecated pattern, show the current equivalent and note it.
+- **Best practices** — what the notebook didn't tell you but should have (from docs research, not the notebook).
+- **Common pitfalls** — what goes wrong, why, how to fix; from deprecation notes, parameter gotchas, provider quirks.
+- **Exercises** — Recall (answerable from reading) · Apply (requires running code) · Extend (open-ended).
+- **Summary** — recap; close with "The next chapter builds on this by…" when there's a next chapter.
+
+Interleave rather than segregate when it teaches better — a concept and its example sitting together usually beats a wall of concepts followed by a wall of code.
 
 ### Step 6: Sync nav and indexes
 
