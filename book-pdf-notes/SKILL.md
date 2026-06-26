@@ -128,7 +128,7 @@ Why this style and not "extract every example"? Because cluttering the page with
 
 Read `references/note-style.md` for the full style guide, including:
 
-- The exact section ordering for a chapter file (preface block → numbered sections → summary → references).
+- The dynamic section ordering for a chapter file (fixed source-citation preface + trailing references; body mirrors the chapter's own sections, no imposed skeleton).
 - How to render code, callouts, sidebars, and version notes.
 - How to mark "open questions" and "things to revisit".
 - A complete annotated example chapter you can model from.

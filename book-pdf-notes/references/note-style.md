@@ -10,7 +10,7 @@ This isn't a verbatim transcript and it isn't a paragraph summary either. Think 
 
 ## Section ordering
 
-Use this exact order at the top level of every chapter file. The header levels matter — Zensical uses them to build per-page navigation.
+**The note structure is dynamic — it mirrors the chapter, it does not impose a skeleton.** The body sections *are* the chapter's own sections, in the chapter's own order. Only two things are fixed: the **source-citation preface** at the top and a light **trailing references / cross-links** block at the bottom. Everything between is shaped by the chapter. A short chapter gets a short note; a chapter with eight sections gets eight sections. The header levels matter — Zensical uses them to build per-page navigation.
 
 ```markdown
 # Chapter <N> — <Chapter Title>
@@ -23,24 +23,23 @@ Use this exact order at the top level of every chapter file. The header levels m
 
 ---
 
-## 1. <First section title from the chapter>
+## 1. <First section title — taken from the chapter>
 …
 
-## 2. <Second section title>
+## 2. <Second section title — taken from the chapter>
 …
 
-…
-
-## N. Summary (chapter takeaways)
-- 3–6 bullet recap of the chapter's load-bearing points.
+<as many sections as the chapter has, in the chapter's order>
 
 ---
 
-## N+1. References
+## References
 - Bullet list of links the chapter cites that are worth keeping.
 ```
 
-Top-level numbering (`## 1.` etc.) is intentional — the chapter often has its own numbering, but mirroring it explicitly in the notes makes referencing back to the source easy. If the chapter doesn't number its sections, you can still number yours; the goal is *navigability*, not literal mirroring.
+**Don't force sections the chapter doesn't have.** A `Summary` section is worth adding *when the chapter is long enough that a recap helps* — it's optional, not mandatory; a short chapter often doesn't need one. `References` is similarly only there when the chapter actually cites links worth keeping. Don't manufacture either to fill a template.
+
+Top-level numbering (`## 1.` etc.) is intentional — the chapter often has its own numbering, so mirroring it explicitly makes referencing back to the source easy. If the chapter doesn't number its sections, you can still number yours; the goal is *navigability*, not literal mirroring.
 
 ## Section content
 
