@@ -398,39 +398,63 @@ nav = [
 
 **Nav convention:** The section is called **Notes** (not Sources). Each note entry is prefixed with its sequence number (`1.`, `2.`, `3.`…) so the reader can navigate in order. Assign numbers in the order notes are added; don't renumber existing entries when adding new ones.
 
-**Documentation-site sources — group nav by the docs site's own sidebar.** When a course's sources are pages from a documentation site (HashiCorp, Databricks, AWS, Google Cloud, etc.), mirror that site's **sidebar navigation tree** in the `zensical.toml` nav instead of a flat numbered list. The docs team's own information architecture is almost always better than an ad-hoc one, and it makes notes easy to locate against the live docs.
+**Documentation-site sources — mirror the source's own navigation.** When a course's sources are pages from a documentation site, reproduce that site's **own navigation tree** in the `zensical.toml` nav instead of a flat numbered list. The docs team's information architecture is almost always better than an ad-hoc one, and it makes notes easy to locate against the live docs.
 
-!!! danger "The sidebar is the authority. The breadcrumb is not."
-    A breadcrumb is a *rendered convenience*, not the site's IA. It routinely **truncates levels** and, when a page appears in **two places** in the sidebar, reports only one of them — often the less useful one. Grouping by breadcrumb produces a nav that silently disagrees with the source docs, which defeats the entire point of mirroring them.
+The principle is fixed. **How you discover that navigation is site-specific** — every docs platform exposes it differently, and some sources expose nothing at all. Do not assume the last site's method works on this one.
 
-    Verified failure (HashiCorp Terraform docs, 2026-07-10): `language/block/provider` breadcrumbs as `Configuration Language › provider`, but the sidebar files it under **Configure providers**. `language/files/dependency-lock` breadcrumbs under `Files and configuration structure`, but *also* lives under **Configure providers** — the breadcrumb reported only the REFERENCE placement. Two of nine pages were misfiled before this was caught.
+### Evidence ladder — find the strongest signal this site offers
 
-    Use the breadcrumb only as a **fallback** when no machine-readable sidebar exists, and say so in the commit when you do.
+Work down this list and stop at the first one that yields a full tree. Record which rung you landed on.
 
-**Get the sidebar tree with `scripts/fetch_nav.py`** (in this skill's directory). It extracts a site's real nav tree and prints it as an indented outline with hrefs:
+| Rung | Signal | Confidence | Typical of |
+|---|---|---|---|
+| 1 | **Machine-readable nav payload** — framework JSON embedded in the page or served as a file | Authoritative | `__NEXT_DATA__` (Next.js/Vercel), `__DOCUSAURUS_GLOBAL_DATA__`, `__NUXT__`, Mintlify `docs.json`, GitBook JSON, a `toc.json`/`nav.json` fetched by the page |
+| 2 | **Nav config in the docs' own repo** | Authoritative | `mkdocs.yml` `nav:`, Sphinx `toctree`, Docusaurus `sidebars.js`, Antora `nav.adoc`, `SUMMARY.md` (mdBook/GitBook) |
+| 3 | **Rendered nav DOM** — not always a *sidebar*; some themes put site nav in a top navbar and give the sidebar to the page's own table of contents | High, if fully expanded | Most static-site generators |
+| 4 | **A section index / "In this section" page** listing its children | Medium | AWS, Microsoft Learn, many hand-built docs |
+| 5 | **Breadcrumb** | **Low — see the warning below** | Nearly everything |
+| 6 | **URL path segments** | Very low | fallback only |
+| 7 | Your own invented taxonomy | Never | — |
+
+!!! danger "A breadcrumb is not an information architecture"
+    A breadcrumb is a *rendered convenience*. It routinely **truncates levels**, and when a page sits in **two places** in the nav it reports only one — often the reference dump rather than the task-oriented section a reader would actually look under.
+
+    Verified failure (HashiCorp Terraform docs, 2026-07-10): `language/block/provider` breadcrumbs as `Configuration Language › provider`, but the sidebar files it under **Configure providers**. `language/files/dependency-lock` breadcrumbs under `Files and configuration structure` while *also* living under **Configure providers**. Two of nine pages were misfiled before the mismatch was caught.
+
+    Use rung 5 or 6 only when nothing above them exists, say so in the commit, and eyeball the result against the live page.
+
+### Probe the site with `scripts/fetch_nav.py`
+
+The script (in this skill's directory) walks the ladder for you and reports **every** signal it finds, so you can compare rather than trust one blindly:
 
 ```
 python <skill-dir>/scripts/fetch_nav.py <url-of-any-page-in-the-section>
-python <skill-dir>/scripts/fetch_nav.py <url> --json      # raw tree, for scripting
+python <skill-dir>/scripts/fetch_nav.py <url> --all     # show every signal found, not just the best
+python <skill-dir>/scripts/fetch_nav.py <url> --json    # raw tree, for scripting
+python <skill-dir>/scripts/fetch_nav.py <url> --match <substr>   # flag entries whose href contains substr
 ```
 
-It tries, in order: the Next.js `__NEXT_DATA__` payload (HashiCorp, Vercel-hosted docs), a Docusaurus/`__DOCUSAURUS_*` payload, then the rendered sidebar DOM, then the breadcrumb. It prints **which source it used** — check that line. If it falls back to `breadcrumb`, treat the result as low-confidence and eyeball it against the real page.
+It always prints a `# nav source:` line naming the rung it used. **Read that line.** It covers rungs 1, 3, and 5 automatically, and scans arbitrary `window.*` globals and embedded `<script type="application/json">` blocks for nav-shaped data, so it is not limited to the frameworks named above. Rungs 2 and 4 are manual — if the script reports a weak rung, check whether the docs are open-source (rung 2) or have a section index page (rung 4) before settling.
 
-Two things that do **not** work and are not worth retrying:
+When the script finds nothing, that is a real answer: **the source has no navigation to mirror.** Fall back to the numbered-Notes convention and say so.
 
-- **Reading the breadcrumb out of the fetch cache.** `fetch_page.py` does not reliably capture one. On HashiCorp docs the first line of `cache/web/<slug>.txt` is the *version selector* (`v1.15.x (latest)`).
-- **Expanding the sidebar DOM by clicking.** On HashiCorp docs, clicking every `button[aria-expanded='false']` leaves zero collapsed buttons yet still renders group `<li>`s with no children. The JSON payload is the only reliable source there.
+### Site-specific findings (append as you learn them)
 
-Rules:
+- **developer.hashicorp.com** — rung 1, `__NEXT_DATA__ → props.pageProps.layoutProps.sidebarNavDataLevels`. Breadcrumbs mislead (above). `fetch_page.py` does **not** cache a breadcrumb; the first line of `cache/web/<slug>.txt` is the version selector (`v1.15.x (latest)`). Expanding the sidebar DOM by clicking every `button[aria-expanded='false']` leaves zero collapsed buttons yet still renders group `<li>`s with no children — don't retry it.
+- **opentofu.org** — Docusaurus, but no usable global payload; resolves at rung 3, which nests correctly.
+- **mkdocs.org** (Bootstrap theme) — the element matching `[class*="sidebar"]` is the **page's table of contents**, all `#anchor` links; the real site nav is a top navbar. A naive "grab the sidebar" probe returns the TOC and looks plausible. The script now rejects any candidate whose links are all anchors, but check the output when a site resolves at rung 3.
 
-- **The nav group = the sidebar section**, not the URL path segment. They often differ — read the real tree, don't infer from the URL.
-- **The sidebar beats conceptual re-grouping — always.** Even if a page feels like it belongs under a different section, place it exactly where the sidebar puts it, not under a concept section you invented. Failure mode: filing under "Concepts" or "Reference" when the sidebar already scopes it precisely.
-- **When a page appears twice in the sidebar, file it under the task-oriented section**, not the reference dump. HashiCorp lists `provider block reference` under both *Configure providers* and *REFERENCE › Configuration blocks*; the first is where a reader looks for it. Note the duplication in the commit message.
-- **Nest sub-groups to match sidebar depth** — but only add an intermediate level when its parent is *itself a captured page* (give that page an `"Overview"` entry, then nest its children under it) **or** the level has **≥2 children**. A level that is pure taxonomy with a single child and no captured overview page stays flat — don't bury one note under an empty header.
-- **Label leaf entries by the sidebar's own label**, not a re-invented name.
-- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, then confirm every note file appears exactly **once** in nav, then **actually build the site** (`python -c "from zensical import build; build('zensical.toml', clean=False)"`) — a valid TOML nav can still fail to render.
+### Rules once you have the tree
 
-This sidebar-grouping rule replaces the flat sequence-numbered list **for documentation-site courses only**. Article/blog/paper courses keep the numbered-Notes convention above.
+- **The nav group = the section in the source's navigation**, not the URL path segment. They often differ — read the real tree, don't infer from the URL.
+- **The source's navigation beats conceptual re-grouping — always.** Even if a page feels like it belongs elsewhere, place it exactly where the source puts it, not under a section you invented. Failure mode: filing under "Concepts" or "Reference" when the source already scopes it precisely.
+- **When a page appears twice, file it under the task-oriented section**, not the reference dump. HashiCorp lists `provider block reference` under both *Configure providers* and *REFERENCE › Configuration blocks*; the first is where a reader looks. Note the duplication in the commit message.
+- **Nest sub-groups to match the source's depth** — but only add an intermediate level when its parent is *itself a captured page* (give that page an `"Overview"` entry, then nest its children under it) **or** the level has **≥2 children**. A level that is pure taxonomy with a single child and no captured overview page stays flat — don't bury one note under an empty header.
+- **Label leaf entries with the source's own label**, not a re-invented name.
+- **Record the rung** you used in the course's `docs/sources/<course-slug>/index.md`, so a later session regroups from the same signal instead of re-deriving (or silently picking a weaker one).
+- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, confirm every note file appears exactly **once** in nav, then **actually build the site** (`python -c "from zensical import build; build('zensical.toml', clean=False)"`) — a valid TOML nav can still fail to render.
+
+This mirroring rule replaces the flat sequence-numbered list **for documentation-site courses only**. Article, blog, and paper courses have no upstream navigation to mirror, so they keep the numbered-Notes convention above.
 
 ### `docs/index.md`
 ```markdown

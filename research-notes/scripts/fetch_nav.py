@@ -1,30 +1,43 @@
 """
-fetch_nav.py — extract a documentation site's real sidebar navigation tree.
+fetch_nav.py — discover a documentation site's own navigation tree.
 
 Usage:
-    python fetch_nav.py <url> [--json] [--timeout <ms>] [--match <substr>]
+    python fetch_nav.py <url> [--all] [--json] [--timeout <ms>] [--match <substr>]
 
 Why this exists:
-    Breadcrumbs are NOT a docs site's information architecture. They truncate
-    levels, and when a page appears twice in the sidebar they report only one
-    placement. Grouping notes nav by breadcrumb silently produces a tree that
-    disagrees with the source docs.
+    Notes nav should mirror the source site's own information architecture.
+    But every docs platform exposes that architecture differently, and some
+    sources expose none at all. This script probes the site and reports what
+    it actually found, rather than assuming one platform's convention.
 
-    This script reads the sidebar itself. It tries, in order:
-      1. Next.js __NEXT_DATA__ payload   (HashiCorp, many Vercel-hosted docs)
-      2. Docusaurus global data          (Meta-style docs)
-      3. The rendered sidebar DOM        (generic fallback)
-      4. The breadcrumb                  (last resort, low confidence)
+Evidence ladder (see SKILL.md). The script covers rungs 1, 3 and 5:
 
-    It always prints which source it used. If that line says "breadcrumb",
-    treat the output as low-confidence and verify against the live page.
+    1. machine-readable nav payload   (authoritative)
+       - window.__NEXT_DATA__            Next.js / Vercel-hosted docs
+       - window.__DOCUSAURUS_GLOBAL_DATA__
+       - window.__NUXT__ and any other window.* global holding nav-shaped data
+       - <script type="application/json"> blocks embedded in the page
+    2. nav config in the docs' repo    (authoritative, MANUAL — mkdocs.yml,
+       sidebars.js, toctree, SUMMARY.md)
+    3. rendered nav DOM                (high confidence if fully expanded; may be a
+                                        top navbar, not a sidebar)
+    4. section index page              (medium, MANUAL)
+    5. breadcrumb                      (LOW — truncates levels, hides the fact
+                                        that a page can sit in two places)
+    6. URL path segments               (very low, not attempted here)
 
-Notes:
-    - Expanding the sidebar DOM by clicking aria-expanded=false buttons does
-      NOT reliably reveal children (verified broken on developer.hashicorp.com:
-      zero collapsed buttons remain, yet group <li>s render no children).
-      That is why the JSON payloads are tried first.
-    - Uses the system Chrome if present, else Playwright's bundled Chromium.
+    Rungs 2 and 4 are manual: if this script only reaches rung 3 or below,
+    check whether the docs are open-source, or have a section index page,
+    before settling for a weak signal.
+
+    Always read the "# nav source:" line in the output. If it names rung 5,
+    treat the result as low confidence and verify against the live page.
+
+Known site quirks:
+    - developer.hashicorp.com: breadcrumbs disagree with the sidebar. Clicking
+      every button[aria-expanded='false'] leaves zero collapsed buttons yet
+      still renders group <li>s with no children, so the DOM path is useless
+      there. The __NEXT_DATA__ payload is the only reliable source.
 
 Requirements:
     pip install playwright
@@ -41,34 +54,58 @@ CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 if not Path(CHROME_PATH).exists():
     CHROME_PATH = None
 
-# Keys that hold a nav tree in the various framework payloads.
+# Keys whose values look like a navigation tree.
 NAV_KEYS = (
     "sidebarNavDataLevels",
     "navData",
     "navNodes",
     "navLevels",
     "sidebar",
+    "sidebars",
     "docsSidebars",
+    "navigation",
+    "toc",
+    "tableOfContents",
 )
 
 # Keys under which a node's children may hang.
-CHILD_KEYS = ("routes", "items", "children", "menuItems", "links")
+CHILD_KEYS = ("routes", "items", "children", "menuItems", "links", "pages")
+
+# Keys that carry a node's visible label / target.
+LABEL_KEYS = ("title", "heading", "label", "name", "text")
+HREF_KEYS = ("path", "href", "url")  # NOT "id": group nodes carry synthetic ids
 
 
-def _hunt(node, path, found):
-    """Recursively locate nav-shaped structures in a JSON blob."""
+def _hunt(node, path, found, depth=0):
+    """Recursively locate nav-shaped structures anywhere in a JSON blob."""
+    if depth > 30:
+        return
     if isinstance(node, dict):
         for k, v in node.items():
             if k in NAV_KEYS and isinstance(v, (list, dict)) and v:
                 found.append((f"{path}.{k}", v))
-            _hunt(v, f"{path}.{k}", found)
+            _hunt(v, f"{path}.{k}", found, depth + 1)
     elif isinstance(node, list):
         for i, v in enumerate(node):
-            _hunt(v, f"{path}[{i}]", found)
+            _hunt(v, f"{path}[{i}]", found, depth + 1)
+
+
+def _score(tree):
+    """Rank candidate trees: prefer the one with the most labelled, linked nodes."""
+    blob = json.dumps(tree)
+    hits = sum(blob.count(f'"{k}"') for k in CHILD_KEYS + HREF_KEYS)
+    return (hits, len(blob))
+
+
+def _best(found):
+    if not found:
+        return None, None
+    found = sorted(found, key=lambda kv: _score(kv[1]), reverse=True)
+    return found[0][1], found[0][0]
 
 
 def _node_label(item):
-    for key in ("title", "heading", "label", "name", "text"):
+    for key in LABEL_KEYS:
         val = item.get(key)
         if isinstance(val, str) and val.strip():
             return val.strip()
@@ -76,9 +113,7 @@ def _node_label(item):
 
 
 def _node_href(item):
-    # Deliberately excludes "id": group nodes carry synthetic ids like
-    # "sidebar-nav-item-1" which are not links and only add noise.
-    for key in ("path", "href", "url"):
+    for key in HREF_KEYS:
         val = item.get(key)
         if isinstance(val, str) and val.strip():
             return val.strip()
@@ -109,57 +144,115 @@ def _render(items, depth, out, match=None):
                 _render(item[key], child_depth, out, match)
 
 
-def _from_next_data(page):
-    raw = page.evaluate("() => window.__NEXT_DATA__ ? JSON.stringify(window.__NEXT_DATA__) : null")
-    if not raw:
-        return None, None
-    found = []
-    _hunt(json.loads(raw), "root", found)
-    if not found:
-        return None, None
-    # Prefer the deepest/richest tree.
-    found.sort(key=lambda kv: len(json.dumps(kv[1])), reverse=True)
-    return found[0][1], f"__NEXT_DATA__ ({found[0][0]})"
+# --- rung 1: machine-readable payloads -------------------------------------
+
+GLOBALS_JS = r"""() => {
+  const out = {};
+  const seed = ['__NEXT_DATA__', '__DOCUSAURUS_GLOBAL_DATA__', '__NUXT__',
+                '__remixContext', '__sveltekit', '__DOCS__', '__INITIAL_STATE__'];
+  const names = new Set(seed);
+  // Also sweep window for any other big JSON-ish global.
+  for (const k of Object.getOwnPropertyNames(window)) {
+    if (/^__/.test(k) || /nav|sidebar|docs|toc/i.test(k)) names.add(k);
+  }
+  for (const k of names) {
+    try {
+      const v = window[k];
+      if (v && typeof v === 'object') {
+        const s = JSON.stringify(v);
+        if (s && s.length > 200 && s.length < 8000000) out[k] = s;
+      }
+    } catch (e) { /* getter threw or value is circular */ }
+  }
+  return out;
+}"""
+
+EMBEDDED_JSON_JS = r"""() => {
+  const out = {};
+  const nodes = document.querySelectorAll('script[type="application/json"], script[type="application/ld+json"]');
+  let i = 0;
+  for (const n of nodes) {
+    const t = (n.textContent || '').trim();
+    if (t.length > 200) out[(n.id || ('script[' + i + ']'))] = t;
+    i++;
+  }
+  return out;
+}"""
 
 
-def _from_docusaurus(page):
-    raw = page.evaluate(
-        "() => window.__DOCUSAURUS_GLOBAL_DATA__ "
-        "? JSON.stringify(window.__DOCUSAURUS_GLOBAL_DATA__) : null"
-    )
-    if not raw:
-        return None, None
-    found = []
-    _hunt(json.loads(raw), "root", found)
-    if not found:
-        return None, None
-    found.sort(key=lambda kv: len(json.dumps(kv[1])), reverse=True)
-    return found[0][1], f"__DOCUSAURUS_GLOBAL_DATA__ ({found[0][0]})"
+def _payload_candidates(page):
+    """Return [(origin_label, tree)] for every nav-shaped payload found."""
+    cands = []
+    for origin, blobs in (
+        ("window", page.evaluate(GLOBALS_JS)),
+        ("embedded-json", page.evaluate(EMBEDDED_JSON_JS)),
+    ):
+        for name, raw in (blobs or {}).items():
+            try:
+                parsed = json.loads(raw)
+            except Exception:
+                continue
+            found = []
+            _hunt(parsed, name, found)
+            tree, where = _best(found)
+            if tree is not None:
+                cands.append((f"{origin}:{where}", tree))
+    cands.sort(key=lambda kv: _score(kv[1]), reverse=True)
+    return cands
 
+
+# --- rung 3: sidebar DOM ----------------------------------------------------
 
 DOM_JS = r"""() => {
-  const side = document.querySelector('#sidebar')
-    || document.querySelector('nav[aria-label*="idebar"]')
-    || document.querySelector('[class*="sidebar"]')
-    || document.querySelector('aside nav');
-  if (!side) return null;
   const NL = String.fromCharCode(10);
-  const out = [];
-  for (const li of side.querySelectorAll('li')) {
-    let depth = 0, p = li.parentElement;
-    while (p && p !== side) { if (p.tagName === 'UL' || p.tagName === 'OL') depth++; p = p.parentElement; }
-    const kids = [...li.childNodes].filter(n => n.nodeType === 1 && n.tagName !== 'UL' && n.tagName !== 'OL');
-    let label = '';
-    for (const d of kids) {
-      const t = (d.innerText || d.textContent || '').trim();
-      if (t) { label = t.split(NL)[0]; break; }
+
+  const harvest = (root) => {
+    const out = [];
+    for (const li of root.querySelectorAll('li')) {
+      let depth = 0, p = li.parentElement;
+      while (p && p !== root) { if (p.tagName === 'UL' || p.tagName === 'OL') depth++; p = p.parentElement; }
+      const kids = [...li.childNodes].filter(n => n.nodeType === 1 && n.tagName !== 'UL' && n.tagName !== 'OL');
+      let label = '';
+      for (const d of kids) {
+        const t = (d.innerText || d.textContent || '').trim();
+        if (t) { label = t.split(NL)[0]; break; }
+      }
+      const a = li.querySelector(':scope > a') || li.querySelector(':scope > div > a');
+      const href = a ? a.getAttribute('href') : '';
+      if (label) out.push({ depth: Math.max(0, depth - 1), label, href });
     }
-    const a = li.querySelector(':scope > a') || li.querySelector(':scope > div > a');
-    const href = a ? a.getAttribute('href') : '';
-    if (label) out.push({ depth: Math.max(0, depth - 1), label, href });
+    return out;
+  };
+
+  // Any of these MAY be the site nav -- or the in-page table of contents,
+  // which looks identical structurally. Not every theme puts the nav in a
+  // sidebar: some (mkdocs Bootstrap) put it in a top navbar and give the
+  // sidebar to the page TOC. Cast wide, then score.
+  const sels = ['#sidebar', 'nav[aria-label*="idebar"]', '[class*="sidebar"]',
+                'aside nav', 'aside', 'nav', '[role="navigation"]',
+                '[class*="nav"]', '[class*="menu"]', '.md-nav--primary'];
+  const seen = new Set();
+  let best = null, bestScore = -1;
+
+  for (const s of sels) {
+    for (const root of document.querySelectorAll(s)) {
+      if (seen.has(root)) continue;
+      seen.add(root);
+      const items = harvest(root);
+      if (items.length < 2) continue;
+      // An in-page TOC links only to #anchors on the current page. A site nav
+      // links to other pages. Prefer the latter, heavily.
+      const pageLinks = items.filter(i => i.href && !i.href.startsWith('#')).length;
+      const anchors   = items.filter(i => i.href && i.href.startsWith('#')).length;
+      if (pageLinks === 0) continue;              // pure TOC -- never the nav
+      const score = pageLinks * 10 - anchors + items.length;
+      if (score > bestScore) { bestScore = score; best = items; }
+    }
   }
-  return out.length ? out : null;
+  return best;
 }"""
+
+# --- rung 5: breadcrumb -----------------------------------------------------
 
 BREADCRUMB_JS = r"""() => {
   const sels = ["nav[aria-label='Breadcrumb']", "nav[aria-label='breadcrumbs']", "[class*='readcrumb']"];
@@ -174,10 +267,18 @@ BREADCRUMB_JS = r"""() => {
 }"""
 
 
+def _print_dom(dom, match):
+    for item in dom:
+        href = f"   [{item['href']}]" if item["href"] else ""
+        flag = "   <<< MATCH" if match and match in (item["href"] or "") else ""
+        print("  " * item["depth"] + item["label"] + href + flag)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("url")
-    ap.add_argument("--json", action="store_true", help="dump the raw tree as JSON")
+    ap.add_argument("--all", action="store_true", help="show every signal found, not just the best")
+    ap.add_argument("--json", action="store_true", help="dump the winning tree as JSON")
     ap.add_argument("--timeout", type=int, default=60000)
     ap.add_argument("--match", help="flag entries whose href contains this substring")
     args = ap.parse_args()
@@ -191,41 +292,51 @@ def main():
         page.goto(args.url, wait_until="domcontentloaded", timeout=args.timeout)
         page.wait_for_timeout(2000)
 
-        tree, source = _from_next_data(page)
-        if tree is None:
-            tree, source = _from_docusaurus(page)
-
-        if tree is not None:
-            if args.json:
-                print(json.dumps(tree, indent=1))
-                browser.close()
-                return
-            lines = []
-            _render(tree, 0, lines, args.match)
-            print(f"# nav source: {source}")
-            print("\n".join(lines))
-            browser.close()
-            return
-
+        payloads = _payload_candidates(page)
         dom = page.evaluate(DOM_JS)
-        if dom:
-            print("# nav source: sidebar DOM (collapsed groups may be missing children - verify)")
-            for item in dom:
-                href = f"   [{item['href']}]" if item["href"] else ""
-                flag = "   <<< MATCH" if args.match and args.match in (item["href"] or "") else ""
-                print("  " * item["depth"] + item["label"] + href + flag)
-            browser.close()
-            return
-
         crumbs = page.evaluate(BREADCRUMB_JS)
         browser.close()
 
-    if crumbs:
-        print("# nav source: breadcrumb (LOW CONFIDENCE - breadcrumbs truncate and hide dual placements)")
-        print(" > ".join(crumbs))
+    if args.all:
+        print(f"# signals found: payloads={len(payloads)} sidebar-dom={'yes' if dom else 'no'} "
+              f"breadcrumb={'yes' if crumbs else 'no'}")
+        for origin, tree in payloads:
+            print(f"\n## rung 1 payload: {origin}")
+            lines = []
+            _render(tree, 0, lines, args.match)
+            print("\n".join(lines[:400]))
+        if dom:
+            print("\n## rung 3 sidebar DOM")
+            _print_dom(dom, args.match)
+        if crumbs:
+            print("\n## rung 5 breadcrumb (LOW CONFIDENCE)")
+            print(" > ".join(crumbs))
         return
 
-    print("# nav source: NONE - could not find a sidebar, payload, or breadcrumb", file=sys.stderr)
+    if payloads:
+        origin, tree = payloads[0]
+        if args.json:
+            print(json.dumps(tree, indent=1))
+            return
+        print(f"# nav source: rung 1, machine-readable payload ({origin})")
+        lines = []
+        _render(tree, 0, lines, args.match)
+        print("\n".join(lines))
+        return
+
+    if dom:
+        print("# nav source: rung 3, rendered nav DOM (collapsed groups may hide children - verify)")
+        _print_dom(dom, args.match)
+        return
+
+    if crumbs:
+        print("# nav source: rung 5, breadcrumb (LOW CONFIDENCE - truncates levels, hides dual placements)")
+        print(" > ".join(crumbs))
+        print("# check rungs 2 and 4 by hand: docs repo nav config, or a section index page", file=sys.stderr)
+        return
+
+    print("# nav source: NONE - no payload, nav DOM, or breadcrumb found.", file=sys.stderr)
+    print("# This source may have no navigation to mirror; use the numbered-Notes convention.", file=sys.stderr)
     sys.exit(1)
 
 
