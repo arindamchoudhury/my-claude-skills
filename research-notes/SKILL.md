@@ -105,9 +105,9 @@ Run these steps in order. Don't skip the fold-in just because the answer to step
    - **Absent** — not mentioned → gap.
    - **Name-dropped** — appears only inside a feature list / callout, never explained → still a gap (this is the most common and most missable case).
    - **Covered** — a topic already scopes it with its own reference/milestone → no note needed; say so and stop.
-2. **Fetch** the page with `fetch_page.py` (NOT `WebFetch` for JS-rendered doc sites — see "Fetching web pages"). Read `cache/web/<slug>.txt`. Its **first line is the breadcrumb** (segments concatenated).
+2. **Fetch** the page with `fetch_page.py` (NOT `WebFetch` for JS-rendered doc sites — see "Fetching web pages"). Read `cache/web/<slug>.txt`. Do **not** assume its first line is a breadcrumb — on many sites it is the version selector or the page title.
 3. **Write the source note** (flavor 2 note style). Set `**Source updated:**` from the page's "Last updated" line. Cross-link related notes with `[[slug]]`.
-4. **Wire in by breadcrumb** — nav group = breadcrumb root (see the breadcrumb-grouping rule under Nav convention), course index, source log.
+4. **Wire in by sidebar** — nav group = the docs site's own sidebar section, extracted with `scripts/fetch_nav.py` (see the sidebar-grouping rule under Nav convention; **do not group by breadcrumb**). Then course index, source log.
 5. **Fold into the learning path (Phase 5).** This is the step the coverage question exists to set up — do not omit it. Add the note as a **reference** under the topic(s) it informs; add a dated callout if it introduces a new distinction/version/rename; bump the `learning-path.md` header `Last updated` line with a one-line changelog. A note landing ≠ topic completion — leave the topic's ⬜/✅ status unless a chapter was actually written. This mirrors **learning-path skill, Phase 5** — load it if available; the steps here are the same diff-one-note reconcile.
 6. **Validate + commit.** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, confirm every note file appears once in nav, then commit the note + path edits together.
 
@@ -398,17 +398,39 @@ nav = [
 
 **Nav convention:** The section is called **Notes** (not Sources). Each note entry is prefixed with its sequence number (`1.`, `2.`, `3.`…) so the reader can navigate in order. Assign numbers in the order notes are added; don't renumber existing entries when adding new ones.
 
-**Documentation-site sources — group nav by the page's own breadcrumb.** When a course's sources are pages from a documentation site (Databricks, AWS, Google Cloud, etc.), each page carries a breadcrumb at the top (e.g. `Tables › Table types › External tables`). Mirror that breadcrumb in the `zensical.toml` nav instead of a flat numbered list — the docs team's own information architecture is almost always better than an ad-hoc one, and it makes notes easy to locate against the live docs.
+**Documentation-site sources — group nav by the docs site's own sidebar.** When a course's sources are pages from a documentation site (HashiCorp, Databricks, AWS, Google Cloud, etc.), mirror that site's **sidebar navigation tree** in the `zensical.toml` nav instead of a flat numbered list. The docs team's own information architecture is almost always better than an ad-hoc one, and it makes notes easy to locate against the live docs.
+
+!!! danger "The sidebar is the authority. The breadcrumb is not."
+    A breadcrumb is a *rendered convenience*, not the site's IA. It routinely **truncates levels** and, when a page appears in **two places** in the sidebar, reports only one of them — often the less useful one. Grouping by breadcrumb produces a nav that silently disagrees with the source docs, which defeats the entire point of mirroring them.
+
+    Verified failure (HashiCorp Terraform docs, 2026-07-10): `language/block/provider` breadcrumbs as `Configuration Language › provider`, but the sidebar files it under **Configure providers**. `language/files/dependency-lock` breadcrumbs under `Files and configuration structure`, but *also* lives under **Configure providers** — the breadcrumb reported only the REFERENCE placement. Two of nine pages were misfiled before this was caught.
+
+    Use the breadcrumb only as a **fallback** when no machine-readable sidebar exists, and say so in the commit when you do.
+
+**Get the sidebar tree with `scripts/fetch_nav.py`** (in this skill's directory). It extracts a site's real nav tree and prints it as an indented outline with hrefs:
+
+```
+python <skill-dir>/scripts/fetch_nav.py <url-of-any-page-in-the-section>
+python <skill-dir>/scripts/fetch_nav.py <url> --json      # raw tree, for scripting
+```
+
+It tries, in order: the Next.js `__NEXT_DATA__` payload (HashiCorp, Vercel-hosted docs), a Docusaurus/`__DOCUSAURUS_*` payload, then the rendered sidebar DOM, then the breadcrumb. It prints **which source it used** — check that line. If it falls back to `breadcrumb`, treat the result as low-confidence and eyeball it against the real page.
+
+Two things that do **not** work and are not worth retrying:
+
+- **Reading the breadcrumb out of the fetch cache.** `fetch_page.py` does not reliably capture one. On HashiCorp docs the first line of `cache/web/<slug>.txt` is the *version selector* (`v1.15.x (latest)`).
+- **Expanding the sidebar DOM by clicking.** On HashiCorp docs, clicking every `button[aria-expanded='false']` leaves zero collapsed buttons yet still renders group `<li>`s with no children. The JSON payload is the only reliable source there.
 
 Rules:
 
-- **The nav group = the breadcrumb root**, not the URL path segment. They often differ — read the real breadcrumb, don't infer from the URL. (Examples seen on Databricks: every `…/optimizations/*` page breadcrumbs under **Tables › Optimization and performance**; the Spark-UI troubleshooting pages under `…/optimizations/spark-ui-guide/*` breadcrumb under **Compute › Classic compute › Troubleshoot**.)
-- **Capture the breadcrumb when you fetch.** `fetch_page.py` saves it as the first line of `cache/web/<slug>.txt` (segments concatenated, e.g. `TablesTable typesExternal tables`). To regroup an existing course, read the first line of every cache file at once: `for f in cache/web/*.txt; do echo -n "${f}:: "; head -1 "$f"; done`.
-- **Nest sub-groups to match breadcrumb depth** — but only add an intermediate level when its parent is *itself a captured page* (give that page an `"Overview"` entry, then nest its children under it) **or** the level has **≥2 children**. A breadcrumb level that is pure taxonomy with a single child and no captured overview page stays flat — don't bury one note under an empty header.
-- **Label leaf entries by the breadcrumb leaf** (the page's own title), not a re-invented name.
-- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, then confirm every note file still appears exactly once in nav.
+- **The nav group = the sidebar section**, not the URL path segment. They often differ — read the real tree, don't infer from the URL.
+- **The sidebar beats conceptual re-grouping — always.** Even if a page feels like it belongs under a different section, place it exactly where the sidebar puts it, not under a concept section you invented. Failure mode: filing under "Concepts" or "Reference" when the sidebar already scopes it precisely.
+- **When a page appears twice in the sidebar, file it under the task-oriented section**, not the reference dump. HashiCorp lists `provider block reference` under both *Configure providers* and *REFERENCE › Configuration blocks*; the first is where a reader looks for it. Note the duplication in the commit message.
+- **Nest sub-groups to match sidebar depth** — but only add an intermediate level when its parent is *itself a captured page* (give that page an `"Overview"` entry, then nest its children under it) **or** the level has **≥2 children**. A level that is pure taxonomy with a single child and no captured overview page stays flat — don't bury one note under an empty header.
+- **Label leaf entries by the sidebar's own label**, not a re-invented name.
+- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, then confirm every note file appears exactly **once** in nav, then **actually build the site** (`python -c "from zensical import build; build('zensical.toml', clean=False)"`) — a valid TOML nav can still fail to render.
 
-This breadcrumb-grouping rule replaces the flat sequence-numbered list **for documentation-site courses only**. Article/blog/paper courses keep the numbered-Notes convention above.
+This sidebar-grouping rule replaces the flat sequence-numbered list **for documentation-site courses only**. Article/blog/paper courses keep the numbered-Notes convention above.
 
 ### `docs/index.md`
 ```markdown
