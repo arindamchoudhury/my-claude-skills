@@ -50,6 +50,12 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+# Nav labels routinely contain non-cp1252 characters. Without this, printing a
+# tree on a Windows console dies with UnicodeEncodeError partway through.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 if not Path(CHROME_PATH).exists():
     CHROME_PATH = None
@@ -228,9 +234,10 @@ DOM_JS = r"""() => {
   // which looks identical structurally. Not every theme puts the nav in a
   // sidebar: some (mkdocs Bootstrap) put it in a top navbar and give the
   // sidebar to the page TOC. Cast wide, then score.
-  const sels = ['#sidebar', 'nav[aria-label*="idebar"]', '[class*="sidebar"]',
-                'aside nav', 'aside', 'nav', '[role="navigation"]',
-                '[class*="nav"]', '[class*="menu"]', '.md-nav--primary'];
+  const sels = ['.theme-doc-sidebar-menu', '#sidebar', 'nav[aria-label*="idebar"]',
+                '[class*="sidebar"]', 'aside nav', 'aside', 'nav',
+                '[role="navigation"]', '[class*="nav"]', '[class*="menu"]',
+                '.md-nav--primary'];
   const seen = new Set();
   let best = null, bestScore = -1;
 
@@ -290,7 +297,34 @@ def main():
         browser = p.chromium.launch(**launch)
         page = browser.new_page(viewport={"width": 1400, "height": 1200})
         page.goto(args.url, wait_until="domcontentloaded", timeout=args.timeout)
-        page.wait_for_timeout(2000)
+        # Client-hydrated docs (Docusaurus, Next.js) render the sidebar after
+        # DOMContentLoaded; scoring before it exists picks the top navbar. Wait
+        # for a nav-shaped element rather than networkidle -- analytics-heavy
+        # doc sites never go idle and would burn the full timeout here.
+        try:
+            page.wait_for_selector(
+                ".theme-doc-sidebar-menu, aside nav, [class*='sidebar'] a",
+                timeout=15000,
+            )
+        except Exception:
+            pass
+        page.wait_for_timeout(1000)
+
+        # Expand collapsed categories so their children are harvestable. Scoped
+        # to the sidebar: clicking navbar dropdowns can navigate away. Expanding
+        # a category reveals nested collapsed ones, hence the repeat passes.
+        for _ in range(6):
+            collapsed = page.query_selector_all(
+                "aside [aria-expanded='false'], [class*='sidebar'] [aria-expanded='false']"
+            )
+            if not collapsed:
+                break
+            for el in collapsed:
+                try:
+                    el.click(timeout=250, no_wait_after=True)
+                except Exception:
+                    pass
+            page.wait_for_timeout(150)
 
         payloads = _payload_candidates(page)
         dom = page.evaluate(DOM_JS)
