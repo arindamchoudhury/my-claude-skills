@@ -301,35 +301,34 @@ def main():
         # DOMContentLoaded; scoring before it exists picks the top navbar. Wait
         # for a nav-shaped element rather than networkidle -- analytics-heavy
         # doc sites never go idle and would burn the full timeout here.
+        # Timeout is short on purpose: a site whose nav is a top navbar (mkdocs
+        # Bootstrap) matches none of these, and every second here is dead time.
         try:
             page.wait_for_selector(
                 ".theme-doc-sidebar-menu, aside nav, [class*='sidebar'] a",
-                timeout=15000,
+                timeout=8000,
             )
         except Exception:
             pass
         page.wait_for_timeout(1000)
 
-        # Expand collapsed categories so their children are harvestable. Scoped
-        # to the sidebar: clicking navbar dropdowns can navigate away. Expanding
-        # a category reveals nested collapsed ones, hence the repeat passes.
-        for _ in range(6):
-            collapsed = page.query_selector_all(
-                "aside [aria-expanded='false'], [class*='sidebar'] [aria-expanded='false']"
-            )
-            if not collapsed:
-                break
-            for el in collapsed:
-                try:
-                    el.click(timeout=250, no_wait_after=True)
-                except Exception:
-                    pass
-            page.wait_for_timeout(150)
+        # Deliberately no "expand every collapsed category" pass. Docusaurus (and
+        # most doc themes) render the current page's ancestor chain already
+        # expanded, which is the only branch needed to place the page in nav.
+        # Clicking the remaining collapsed categories is both useless and slow:
+        # they are off-screen in the sidebar's own scroll container, so every
+        # click fails actionability and burns its full timeout. Measured on
+        # docs.databricks.com: 33 categories x 6 passes = ~50s, zero new links.
 
         payloads = _payload_candidates(page)
         dom = page.evaluate(DOM_JS)
         crumbs = page.evaluate(BREADCRUMB_JS)
-        browser.close()
+        # close() can stall for minutes on analytics-heavy doc sites whose
+        # beacons keep the context alive. Everything is already extracted.
+        try:
+            browser.close()
+        except Exception:
+            pass
 
     if args.all:
         print(f"# signals found: payloads={len(payloads)} sidebar-dom={'yes' if dom else 'no'} "
