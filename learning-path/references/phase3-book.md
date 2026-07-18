@@ -85,7 +85,7 @@ Before writing, re-read the topic's entry in `docs/learning-path.md`. That entry
 - **What it is** — the exact concepts this chapter must cover
 - **Milestone** — the concrete outcome the reader must be able to achieve
 
-The chapter must cover everything in the "What it is" definition and enable the milestone. If a source covers more than the topic's scope, do not include the extra material — it belongs in a different chapter. If the sources together don't cover something in the scope, fill the gap from web research or official docs.
+The chapter must cover everything in the "What it is" definition and enable the milestone. If a source covers more than the topic's scope, do not include the extra material — it belongs in a different chapter. If the sources together don't cover something in the scope, fill the gap from web research or official docs — **never from training memory alone**. A milestone can name a comparison or fact no note covers (e.g. "explain how Terraform differs from Ansible" when no read source mentions Ansible at all). That is the trigger to web-search and save the verified result to `docs/research-cache/<topic>.md`, then write the passage grounded in that cache file — the same way version numbers and current-state facts get verified, not recalled. Treat comparison tables, "common misconceptions" sections, and any named third-party tool/product claim with the same suspicion as a version number: if it isn't in a note, it needs a citation before it goes in the chapter.
 
 **Example:** Topic I2 is "Window Functions". Its scope includes WindowSpec, aggregate functions over windows, ranking functions, analytic functions, frame boundaries, and UDFs on windows. If Rioux Ch 10 also touched on performance implications of windows — that belongs in A3 (Join Strategies and Tuning) or A4 (Data Skew), not here. Keep this chapter focused.
 
@@ -159,6 +159,8 @@ Instead, every chapter must satisfy a few **invariants**, and otherwise draws fr
 - Teaches toward the learning-path milestone for this topic. When the reader finishes, they can do the thing the milestone names.
 - All code is current (Spark 4.x / Python 3.10+), complete, and runnable — no deprecated APIs, no `# ...` truncation.
 - Prose is built from short sentences — one idea per sentence, not long clause-stacked ones. Easier to read and to revise.
+- No em-dash-bracketed comma lists as an aside (`"...practices — versioning, review, CI/CD — that..."`). That construction reads as one long clause wearing a short-sentence disguise — it fails the "short sentences" invariant above even when the individual words are short. Write the list as its own sentence, or introduce it with a colon: `"...practices that manual provisioning never had: versioning, review, and CI/CD."` Split into separate sentences if the aside is doing real work, don't just swap the dashes for a colon and call it fixed.
+- **Every body callout is a Material admonition** (`!!! note "Title"` / `tip` / `warning` / `info` / `danger`), never an emoji-blockquote. This is mandatory, not size-conditional: a one-line aside, a definition, a `(mine)` observation, and a version-gate box are all admonitions. `>` blockquotes are reserved for the chapter-header front-matter (source citation + summary + see-also) only; a `>` blockquote anywhere in the chapter body is a defect to convert on sight. A blockquote also can't box a table and silently corrupts an adjacent list. Never indent an admonition or blockquote *into* a list item — it swallows the following bullets. Place it after the list, or unindented between two bullets of an *unordered* list (splits it cleanly; don't do this inside a numbered list). Rebuild and confirm the following bullets still render. Full formatting rules: `book-pdf-notes/references/note-style.md` → "Code, callouts, sidebars".
 - Ends pointing forward — the closing lines connect to the next topic or to what this chapter unlocks.
 
 **Toolkit — use the elements the topic needs, in the order that serves it:**
@@ -255,6 +257,21 @@ Report at the end of Step 7 confirmation:
 
 ---
 
+## Step 5c — Audit coverage against every source
+
+**A chapter with zero false claims can still be incomplete.** Being grounded (nothing invented) is a different property from being complete (nothing dropped) — checking one does not check the other. Do this pass even when the draft reads fine and nothing seems obviously missing; the gaps this step catches are exactly the kind that don't surface on a re-read looking for errors, only on a line-by-line diff against the source.
+
+1. Re-open every note and topic page cited in the synthesis plan (Step 4), one at a time.
+2. Walk each one section by section. For every substantive point — not just headline claims, but named tools, named pillars/categories, worked examples, and specific figures — confirm it landed somewhere in the chapter.
+3. For anything that didn't land, it must fall into exactly one of two buckets:
+   - **In scope, just missing** → add it to the chapter now, at the logical insertion point (not appended at the bottom).
+   - **Out of scope for this topic** → say so explicitly, naming which later topic owns it (e.g. "full CLI walkthrough → B3", "state internals → B9", "CI/CD depth → A3"). A deliberate, named deferral is fine. A silent omission is not.
+4. Do not treat "the source's own summary/bullet list" as sufficient proxy for its full content — sources often bury a real point (a named comparison, a specific pillar, a fourth example in a list of nine) inside prose the synthesis pass can skim past. Check the actual section headers of the note, not just its final summary.
+
+If this step turns up several missing items, fix them all in the same pass rather than one at a time — re-running the whole audit after each small fix wastes turns.
+
+---
+
 ## Step 6 — Sync site files
 
 After writing the chapter:
@@ -273,6 +290,7 @@ After writing the chapter:
 ✓ Chapter NN: "<Title>" written → docs/book/ch<NN>-<slug>.md
   Learning path: <code> marked ✅
   Sources blended: [list source names]
+  Coverage audit: [done — N gaps found and fixed, or "clean, nothing missing"]
   New glossary terms: N
 
   New topics added to learning path: [list with codes, or "none"]

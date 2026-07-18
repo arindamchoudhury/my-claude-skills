@@ -21,7 +21,7 @@ the dependency ordering are stable. Spend your effort on the facts that drift:
 |---|---|---|
 | Cert question count, time, fee, domain weights | Certifications table | Official cert/exam-guide page |
 | Current stable + LTS + beta versions | Header block | Official release-notes / changelog |
-| Breaking changes, renames, deprecations | Topic callouts (⚠️/📌/🆕) | Release notes, migration guides |
+| Breaking changes, renames, deprecations | Topic callout admonitions (`!!! warning`/`info`/`note`) | Release notes, migration guides |
 | Course names, hours, links, retirements | Resources table + topic entries | Official training catalog |
 | New features mapping to existing topics | Topic callouts | Product announcements, docs |
 | Topic `⬜`/`✅` status | Topic headings | Which book chapters actually exist |
@@ -81,12 +81,12 @@ counts if the path uses them.
 ## Step 4 — Fold in new features as callouts
 
 New platform capabilities usually don't need a new topic — they refine an existing one. A new
-autonomous-optimization feature belongs as a 🆕 callout on the storage-optimization topic, not as its
-own entry. Use the callout convention already in the path:
+autonomous-optimization feature belongs as a callout on the storage-optimization topic, not as its
+own entry. Callouts are **admonitions, never `>` blockquotes** — use the type that matches the fact:
 
-- `⚠️` breaking change the learner must test for before upgrading
-- `📌` naming / behaviour note (old vs new term, exam-vs-current divergence)
-- `🆕` new feature that sits on top of what the topic teaches
+- `!!! warning "..."` — breaking change the learner must test for before upgrading
+- `!!! info "..."` — naming / behaviour note (old vs new term, exam-vs-current divergence)
+- `!!! note "New — ..."` — new feature that sits on top of what the topic teaches
 
 Keep callouts tied to the milestone: explain how the feature changes what the learner does, and make
 clear whether they still need the manual/older skill (usually yes — for exams, for the non-managed

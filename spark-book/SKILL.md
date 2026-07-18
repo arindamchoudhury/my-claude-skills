@@ -156,6 +156,21 @@ Rules:
 After writing the chapter, update all of these:
 
 1. **`docs/spark-book/index.md`** — flip the chapter row from ⬜ to ✅, fill in the date
+
+   **Status marks are a claim, so keep them honest.** ✅ means written *and current*. 🔄 means
+   written but needing revisiting — use it whenever the chapter no longer matches reality:
+   a newer Spark changed a default the chapter states, a source trace opened gaps, or the
+   learning-path topic gained material the chapter does not cover. When you flip to 🔄, do all
+   three together or the marks disagree:
+   - the status cell in `docs/spark-book/index.md`
+   - a dated `> 🔄 **Needs revisiting — …**` banner under the chapter's header block, naming
+     what specifically drifted
+   - the topic heading in `docs/learning-path.md` (`### ✅ <code>` → `### 🔄 <code>`) and the
+     "Carrying 🔄" summary line
+
+   Say in the banner whether the chapter is **wrong** (a false claim — a changed default, a
+   stale version requirement) or merely **incomplete** (missing new surface). Only the first
+   kind misleads a reader, and that is what decides which chapter to fix first.
 2. **`zensical.toml`** — add the chapter entry under the `"Spark Book"` nav group:
    ```toml
    { "Ch NN. Title" = "spark-book/ch<NN>-<slug>.md" }
@@ -200,6 +215,15 @@ One paragraph: what this chapter is about and why the topic matters.
 - All code is current (Spark 4.1.x / Python 3.10+), complete, and runnable — see Code Standards below.
 - Prose is built from short sentences — one idea per sentence, not long clause-stacked ones. Easier to read and to revise.
 - Ends pointing forward — the closing lines connect to the next topic or to what this chapter unlocks.
+- **Callouts are admonitions, never blockquotes.** Every note, caveat, version difference, or aside uses `!!! note` / `!!! warning` / `!!! info` with a quoted title and a 4-space-indented body:
+
+  ```markdown
+  !!! warning "ANSI mode changes what a bad cast does"
+      Spark 4.x raises instead of returning null. Book examples that relied on
+      a null result will now fail the job.
+  ```
+
+  Choose the type by what the reader must do about it: `warning` for something that will bite them, `info` for a naming or behaviour clarification, `note` for additive context. Two carve-outs: the chapter's metadata header (`> *Learning-path topic: …*`) stays a blockquote because it is a header block rather than a callout; and directly after a bullet list a bare `!!!` does not render, so either move the admonition above the list or use a `>` blockquote in that one spot.
 
 ### Toolkit — use the elements the topic needs, in the order that serves it
 

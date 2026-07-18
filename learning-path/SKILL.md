@@ -81,10 +81,10 @@ Read `references/phase2-path.md` for full instructions.
 
 **Summary:**
 1. Organise topics into four levels: Beginner / Intermediate / Advanced / Expert
-2. For each topic write: what it is (1 sentence), why you need it (1 sentence), **multi-modal "How to learn it"** (video first → interactive exercise → depth reading → reference docs), and a concrete milestone
+2. For each topic write: what it is (1 sentence), why you need it (1 sentence), a **"How to learn it"** list (video first → interactive exercise → depth reading → reference docs), and a concrete milestone
 3. Place certifications as level checkpoints (not as topics)
 4. Do NOT organise by resource/book/course — topics are the primary unit; resources serve the topics
-5. Every "How to learn it" section must include at least two different resource types (video, interactive, book, official course, docs, project)
+5. Every "How to learn it" section must cite **both a book chapter and a specific official docs page** — not the docs root, and not two resources of the same kind. Where no book genuinely covers the topic (recent features), add an explicit "No book covers this" callout naming what to use instead, rather than citing a book that does not. Verify every docs URL before writing it — pages get renamed between releases
 
 ---
 
@@ -144,9 +144,15 @@ the new note against `docs/learning-path.md`. Four checks:
    deprecated tool the path still states the old way? → correct the path and add a dated callout on the
    affected topic.
 3. **New resource.** Does the note come from a book / course / article not yet credited in any topic's
-   "How to learn it"? → add it there (respecting the multi-modal rule).
+   "How to learn it"? → add it there (keeping the book-and-docs requirement intact).
 4. **Completion.** Does the note (or its book chapter) mean a topic is now effectively done? → flip
    `⬜` → `✅` and update book progress.
+5. **Staleness.** Did checks 1–3 add material to a topic whose chapter is already written? → that
+   chapter is now behind the path, so flip it `✅` → `🔄` (needs revisiting) rather than leaving a
+   ✅ that claims it is current. Mark all three places together: the topic heading here, the chapter
+   row in the book index, and a dated banner in the chapter file saying what drifted. State whether
+   the chapter is **wrong** (a false claim — a changed default, a stale version requirement) or
+   merely **incomplete**; only the first misleads a reader, and it decides what to fix first.
 
 **If at least one check fires:** make the edit, bump the header `Last updated` line with a one-line
 changelog (e.g. `2026-06-21 — Phase 5: added "Liquid Clustering" subtopic to B5 from Ch2 notes`), and
@@ -195,7 +201,10 @@ phases agree — Phase 1 creates them, Phase 3 reads/writes them, Phase 4 syncs 
 
 ## After Every Phase 3 Run
 
+Before confirming, run the coverage audit (`references/phase3-book.md` Step 5c): re-check every cited note against the written chapter, point by point, not just for false claims but for dropped content. Grounded and complete are different properties — check both.
+
 Always end with:
 - Confirmation of what was written / blended
+- Coverage audit result (gaps found + fixed, or clean)
 - Current chapter count and book progress
 - What's next in the learning path

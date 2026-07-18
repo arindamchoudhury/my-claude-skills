@@ -5,7 +5,7 @@ Write `C:\opt\learn\<topic-slug>\notes\docs\learning-path.md`.
 The learning path is **topic-based, not resource-based**. The primary unit is a *topic* — a discrete concept or skill the learner must acquire. Resources (books, courses, videos, docs) are subordinate: they appear as advice *within* each topic, not as the organizing structure.
 
 A resource-based path says: "Read Chapter 7 of Book X, then take Course Y."
-A topic-based path says: "Learn window functions. Here is the best multi-modal path to do that."
+A topic-based path says: "Learn window functions. Here is the best route through the available resources to do that."
 
 ---
 
@@ -82,9 +82,29 @@ Every topic entry has exactly these five parts. Keep each part tight.
 
 This is the most important part. Follow these rules:
 
-### Use multiple resource types per topic
+### Every topic cites a book AND the official docs
 
-Every topic should have **at least two different resource types** from this list:
+This is a hard requirement, not a count. Each topic's "How to learn it" must include:
+
+- **at least one book chapter** (or, where genuinely no book covers the topic, an explicit callout saying so — see below), and
+- **at least one official documentation page**, linked to the *specific* page that answers the topic's question, never the docs root
+
+Two resources of the same kind do not satisfy this. A topic with a book and a video still needs its docs link; a topic with a video and an interactive exercise needs both a book and docs.
+
+Why both: books explain *why* and give the mental model, but go stale — they describe the defaults, APIs, and UI of the release they were written against. Docs are current and authoritative but assume you already know why you are reading them. A learner given only one of the two either builds a confident wrong model or reads a reference they cannot situate.
+
+**When no book exists.** New features (anything shipped in the last year or two) often have no book coverage at all. Never cite a book that does not actually cover the topic. Instead add:
+
+```markdown
+!!! info "No book covers this — docs and source only"
+    <Feature> landed in <version>, after every book in the resources table.
+    <Name the closest books and what they get wrong or omit.> Use the docs and
+    the source, and verify behaviour against your own stack.
+```
+
+Call out actively misleading cases explicitly: a book that describes an older mode *without flagging that a newer one exists* is worse than silence, because the learner cannot tell it is dated.
+
+Beyond that floor, draw on as many of these as the topic warrants:
 
 | Type | Examples | When to use |
 |---|---|---|
@@ -105,7 +125,7 @@ The recommended sequence for most topics:
 3. **Read for depth** — a book chapter or official guide for nuance and edge cases
 4. **Reference** — the official API docs; bookmark for when actually coding
 
-Not every topic needs all four. Simple topics may need only two resources. Complex topics may need five.
+Not every topic needs all four, but the book-and-docs floor above always applies. Simple topics may need only those two. Complex topics may need five.
 
 ### Be specific, not vague
 
@@ -115,14 +135,30 @@ Not every topic needs all four. Simple topics may need only two resources. Compl
 ❌ Wrong: "Take the Databricks course."
 ✅ Right: "**Official course — Databricks Advanced DE, Module 3** (~4 hrs) — the Spark UI analysis and skew optimisation sections specifically; the CI/CD module is for E7, skip it here."
 
-### Do not default to books
+### Do not stop at books
 
-Books are one resource type among many. For most beginner and intermediate topics, a **video + interactive exercise** combination produces faster and more durable learning than reading alone. Books are best for advanced topics where depth matters and for reference.
+A book is required, but it is never sufficient on its own. For most beginner and intermediate topics, adding a **video or interactive exercise** produces faster and more durable learning than reading alone — and the docs link is mandatory regardless, because the book will be describing an older release.
+
+### Verify every docs link before writing it
+
+A dead or renamed docs link is worse than no link: it surfaces exactly when the learner sits down to study that topic. Documentation pages get renamed between releases (Spark's `sql-scripting.html` → `sql-ref-scripting.html`, `pipelines.html` → `declarative-pipelines-programming-guide.html`, `user_guide/sql/arrow_pandas.html` → `tutorial/sql/arrow_pandas.html`).
+
+Check each URL before committing it. If a local source checkout exists, the docs tree is the cheapest oracle — a page that ships as `docs/<name>.md` in the release tarball exists at `<name>.html`. Generated API pages (Sphinx, javadoc) are not in that tree; verify those live.
+
+### Callouts are admonitions
+
+Every note, caveat, or aside in the path is an `!!!` admonition with a quoted title and a 4-space-indented body — never a `>` blockquote. Choose the type by what the reader must do about it: `warning` for something that will bite them (a changed default, a book that is now wrong), `info` for a naming or behaviour clarification, `note` for additive context such as a new feature.
+
+The one carve-out: directly after a bullet list a bare `!!!` block does not render — put the admonition before the list, or separate the two with a paragraph.
 
 ### Flag outdated resources
 
-If a resource targets a version more than one major release behind current stable, add:
-> 📌 Covers v\<X>; current is v\<Y>. Core concepts apply; verify API names against current docs.
+If a resource targets a version more than one major release behind current stable, add an admonition:
+
+```
+!!! info "Version note"
+    Covers v<X>; current is v<Y>. Core concepts apply; verify API names against current docs.
+```
 
 ---
 
@@ -211,7 +247,8 @@ Expert (E1–EN)        → ~XX hrs  →  [Cert if applicable]
 > **Local stack (if applicable):** <what the user is running>
 >
 > **How to read this page.** Topics are the primary unit. Each topic has a "How to learn it"
-> section that recommends a multi-modal path — video first, then exercises, then depth reading.
+> section listing what to use and in what order — video first, then exercises, then depth
+> reading, and always both a book and the official docs page for that topic.
 > Resources (books, courses, docs) serve the topics; they are not the organizing structure.
 
 ---

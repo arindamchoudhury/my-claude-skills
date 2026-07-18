@@ -102,14 +102,33 @@ $ initdb -D /postgres/18/data
 
 **Tables** — for vocabulary, comparisons, defaults, version-by-version differences. Tables are excellent at the chapter's structural inflection points (e.g., "what's the difference between a backend process and a postmaster?").
 
-**Sidebars / callouts** — render as Markdown blockquotes with a leading emoji-tag for skimming:
+**Sidebars / callouts** — use **Material admonitions** (`!!! <type> "Title"`), which Zensical ships by default. They render as a titled, colored box and — unlike a blockquote — can hold a table, a code block, or several paragraphs without breaking:
 
-- `> 💡 **Tip** — ...`
-- `> ⚠️ **Pitfall** — ...`
-- `> 📌 **Version note** — ...`
+```markdown
+!!! note "Module vs. provider"
+    Body indented 4 spaces. Can contain multiple paragraphs,
+
+    a table,
+
+    | A | B |
+    |---|---|
+    | 1 | 2 |
+
+    and code blocks — all as long as every line is indented 4 spaces.
+```
+
+Common types: `note`, `tip`, `warning`, `danger`, `info`, `example`, `quote`. Pick the one that matches the intent (`tip` for a shortcut, `warning`/`danger` for a pitfall, `info` for a version note).
+
+A plain emoji-blockquote is acceptable **only** for a single-line aside that stands alone (not adjacent to a list, no table/code inside):
+
+- `> 💡 **Tip** — one sentence.`
+- `> ⚠️ **Pitfall** — one sentence.`
+- `> 📌 **Version note** — one sentence.`
 - `> ❓ Revisit: ...` for open questions you want to chase later.
 
-These are deliberately lightweight — Zensical doesn't require a special syntax for admonitions and most readers prefer the plain blockquote.
+The moment a callout needs a table, a code block, more than ~2 sentences, or sits next to a bullet/numbered list, use an admonition instead — a blockquote in those cases either can't hold the content or silently corrupts the surrounding list.
+
+> ⚠️ **CommonMark trap — never indent a callout *into* a list item.** A blockquote or admonition indented under a `-`/`1.` list item gets parsed as part of that item and swallows the rest of the list (following bullets collapse into one run-on line). Two safe placements: (a) put the callout **after the whole list ends** (unindented, blank line before), or (b) to place it mid-list, put it **unindented between two bullets** — for an *unordered* list this cleanly splits it into two bullet groups with the box between; avoid this split inside an *ordered* list, since the numbering restarts. Always rebuild and confirm the following list items still render as their own bullets.
 
 ## Tone
 
