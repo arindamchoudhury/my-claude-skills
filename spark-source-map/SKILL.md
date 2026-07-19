@@ -5,12 +5,17 @@ description: >
   C:\opt\learn\spark\notes. Triggers on: "generate the config catalog", "refresh
   the spark configs", "trace B7", "trace the joins topic", "sweep core", "sweep
   sql/catalyst", "map the joins code paths", "what configs relate to <topic>",
-  "update the source coverage matrix", or any request to build/refresh the
-  source-derived config catalog, per-topic traces, source sweeps, or the
-  topic-coverage matrix under docs/reference/spark-source-map/. Three engines:
-  a deterministic Python config parser (whole repo), a topic-first LLM tracer
-  (one learning-path topic at a time), and a source-first LLM sweeper (one
-  subsystem at a time for gap discovery). Spark source is at C:\opt\learn\spark\spark.
+  "update the source coverage matrix", "regroup core", "add a group for X",
+  "what isn't covered by any group", "check the carving", "groups.yaml is
+  stale", "Spark 4.3 is out", "bump the source map to the new Spark", or any
+  request to build/refresh the source-derived config catalog, per-topic traces,
+  source sweeps, the group carving in groups.yaml, or the topic-coverage matrix
+  under docs/reference/spark-source-map/. Also fires when a Spark release lands
+  and the map must be re-verified against it. Three engines: a deterministic
+  Python config parser (whole repo), a topic-first LLM tracer (one learning-path
+  topic at a time), and a source-first LLM sweeper (one subsystem at a time for
+  gap discovery), plus checker-driven maintenance of the hand-authored
+  groups.yaml. Spark source is at C:\opt\learn\spark\repos\spark.
 ---
 
 # Spark Source Map — Skill
@@ -26,24 +31,64 @@ The learning path is never assumed complete — sweeps expand it by surfacing un
 ---
 
 - Design spec: `C:\opt\learn\spark\notes\docs\superpowers\specs\2026-06-06-spark-source-map-design.md`
-- Spark source: `C:\opt\learn\spark\spark` (verify Spark facts here, not the web)
+- Spark source: `C:\opt\learn\spark\repos\spark` (verify Spark facts here, not the web)
 - Artifacts: `C:\opt\learn\spark\notes\docs\reference\spark-source-map\`
 - Tools: `C:\opt\learn\spark\notes\tools\spark_source_map\`
 - Requires: `python`, `pyyaml` (`pip install pyyaml`); tests need `pytest`.
 
-> **Version caveat (check every run):** the local checkout may be on `master`
-> (`spark_version: 5.0.0-SNAPSHOT` in the catalog), while the book targets Spark 4.1.x.
-> To target 4.1.x, `git -C C:\opt\learn\spark\spark checkout v4.1.x` before `gen configs`.
-> The catalog `meta.spark_version` always records what was actually parsed.
+> **Version caveat (check every run):** the checkout is on `v4.2.0` and the catalog was
+> parsed from it (`meta.spark_version: 4.2.0`, 1558 configs, 2026-07-18). The checkout may
+> drift to `master` (`spark_version: 5.0.0-SNAPSHOT`); to pin a release,
+> `git -C C:\opt\learn\spark\repos\spark checkout v4.2.0` before `gen configs`.
+> The catalog `meta.spark_version` always records what was actually parsed — trust it over
+> this line, and over the config counts in the subsystem table below.
 
-## Four verbs
+## Six verbs
+
+## Autonomy contract
+
+A verb is a whole job, not a step. Run it to completion: every command, every checker fixed to
+green, every document the change invalidated updated, committed. The user asked for the outcome,
+not a plan.
+
+**Ask only when one of these is true.** Each is observable — check it, don't estimate your
+confidence:
+
+1. **The change alters the learning path's taxonomy** — adding, retitling, renumbering or
+   reordering a topic, or deciding a topic is worth studying. That is the user's curriculum.
+   (Filling in a `propose:` block the generator already appended is *not* this: finish it.)
+2. **Two options are defensible and the source cannot decide between them** — which group owns
+   a package, whether a package is plumbing or worth a group, which of several topics a concept
+   backs. Bring the options with file counts and a recommendation.
+3. **A fix requires inventing a fact** — a checker names a class that exists nowhere in the
+   checkout, a config has no discoverable default, a trace cannot follow a path. Say what you
+   could not verify rather than writing a plausible guess.
+4. **The action reaches outside the repo or is hard to undo** — push, force-push, deleting a page
+   with content in it, rewriting history, touching anything outside `C:\opt\learn\spark`.
+
+**Proceed without asking in every other case.** Specifically, these are not doubt:
+
+- The next command in the verb is determined → run it.
+- A checker named a specific fix (`add the module to `modules:``, `fix the name`) → apply it.
+- A doc, table or nav entry now disagrees with the change → sync it.
+- The commit is repo-local and inside the verb's scope → commit it.
+- You are unsure whether the user wants the *whole* verb → they asked for the verb; do all of it.
+
+**Report, don't ask, when something surprised you.** A wrong scope, a false positive in your own
+check, a regression you caused — fix it, then say plainly what it was in the summary. Discovering
+you were wrong is not a reason to stop and ask; it is a reason to correct and disclose.
+
+Two failure modes to avoid, both of which read as helpful:
+
+- **Handing back a checklist.** "Here are the commands to run" is a half-done verb. Run them.
+- **Asking to confirm the obvious.** "Shall I regenerate index.md?" — the verb says to. Do it.
 
 ### `gen configs` — refresh the whole-repo config catalog (deterministic, cheap)
 
 1. Run from the notes repo root:
    ```
    python tools/spark_source_map/gen_configs.py \
-     --source C:/opt/learn/spark/spark \
+     --source C:/opt/learn/spark/repos/spark \
      --out-dir docs/reference/spark-source-map/configs
    ```
 2. Read the printed summary: `spark <version>: <N> configs, <U> unparsed`.
@@ -51,8 +96,32 @@ The learning path is never assumed complete — sweeps expand it by surfacing un
      `python -m pytest tools/spark_source_map/test_gen_configs.py` and fix before committing.
    - If `U > ~5`, open `catalog.yaml` `unparsed:` and check they are genuinely hard
      (nested string interpolation, indirect constant refs). Never hand-edit `catalog.yaml`.
-3. Run `coverage` (below) so the sweep-status table picks up new config counts.
-4. Wire `configs/index.md` into `zensical.toml` nav if not already present; commit.
+3. **Check for drift** — a new Spark release is the moment hand-authored scopes go stale:
+   ```
+   python tools/spark_source_map/check_drift.py
+   ```
+   Exits 1 and names the offenders. It verifies `groups.yaml`'s `_meta.spark_version` against
+   the catalog, that every subsystem is a real module, and that every class and package named
+   in a group `scope` still exists **inside that group's modules**. When a class has moved
+   modules (Spark 4.x did this repeatedly — `StorageLevel` → `common/utils`, `DataType` →
+   `sql/api`), either add the owning module to that group's `modules:` list or fix the name;
+   then bump `_meta.spark_version` / `_meta.verified_at`. Warnings about sweep/topic pages
+   recorded against an older Spark are advisory — they flag anchor drift, not a blocker.
+
+   Then run the inverse check — what exists that no scope names:
+   ```
+   python tools/spark_source_map/check_drift.py --coverage
+   ```
+   A package no group claims can never be swept, so its concepts can never surface as
+   proposals; the gap conceals itself. Advisory, never fails: `util/`, `errors/`, `test/`
+   and `dsl/` are plumbing that rightly has no group. Judge each — don't auto-add.
+
+   The same report flags **two groups claiming the identical package path** — both sweeps
+   would walk the same code. Parent/child is fine and is not flagged (`execution/` vs
+   `execution/joins/`). When the sharing is deliberate, set `shared_scope: true` on each
+   group involved; `resource-managers/kubernetes` splits `k8s/` by theme this way.
+4. Run `coverage` (below) so the sweep-status table picks up new config counts.
+5. Wire `configs/index.md` into `zensical.toml` nav if not already present; commit.
 
 This regenerates `configs/catalog.yaml` (source of truth) and `configs/index.md` (rendered,
 grouped by subsystem → prefix, GitHub-linked). Re-runnable per Spark version in seconds.
@@ -65,7 +134,7 @@ For each learning-path topic (B7, I4, A11, …), find the source code, configs, 
 that back it. One topic per run.
 
 1. **Pre-flight:** look up the topic in `docs/learning-path.md` to get its title and level.
-   Confirm which repo(s) are relevant (most topics: `C:\opt\learn\spark\spark`; Delta Lake
+   Confirm which repo(s) are relevant (most topics: `C:\opt\learn\spark\repos\spark`; Delta Lake
    topics: check the local Delta repo; Dagster/Unity Catalog: note they require network access
    or local clones).
 2. **Config slice:** grep `configs/catalog.yaml` for keyword matches (e.g. for B7 "joins":
@@ -150,41 +219,82 @@ that back it. One topic per run.
 
 ---
 
-### `sweep <subsystem>` — source-first discovery sweep (LLM, on-demand)
+### `sweep <subsystem> [<group>]` — source-first discovery sweep (LLM, on-demand)
 
-For each Spark subsystem, scan all major concepts and identify which have no learning-path topic.
-One subsystem per run. This expands the learning path with things you didn't know to include.
+Scan a subsystem for major concepts and identify which have no learning-path topic. **One group
+per run** — this expands the learning path with things you didn't know to include.
 
-**Available subsystems** (from `groups.yaml`; config counts from catalog at v4.1.2):
+Both invocations are valid:
 
-| Subsystem | Configs | Groups |
-|---|---|---|
-| `sql/catalyst` | 656 | analysis, optimizer, planner, expressions, types-parser |
-| `core` | 533 | rdd-layer, execution-engine, shuffle-memory, storage-serializer, infra |
-| `resource-managers/kubernetes` | 81 | driver-executor, auth-networking |
-| `resource-managers/yarn` | 59 | am-executor |
-| `streaming` | 28 | structured-streaming, dstream |
-| `sql/connect` | 14 | client-server, declarative-pipelines |
-| `sql/hive` | 11 | hive-metastore |
-| `connector/kafka-0-10` | 8 | consumer |
-| `connector/kafka-0-10-sql` | 8 | source-sink |
-| `connector/profiler` | 7 | async-profiler |
+- `sweep core execution-engine` — sweep that group directly.
+- `sweep core` — no group named; run the scope check in step 2 and ask the user to pick one.
+
+To see what groups a subsystem has, and which are already done:
+
+```
+python tools/spark_source_map/gen_coverage.py --list-groups <subsystem>
+```
+
+Prints each group's topics, scope, swept status, Spark version, and page filename; omit the
+subsystem for all of them. Read-only. Use it in pre-flight rather than reading `groups.yaml`
+by hand — it is the only view that also shows what has already been swept.
+
+**Available subsystems** (from `groups.yaml`):
+
+| Subsystem | Groups |
+|---|---|
+| `sql/catalyst` | analysis, optimizer, planner, expressions, types-parser, framework |
+| `sql/core` | query-execution, joins-exec, adaptive, datasources, agg-window-exchange, python-arrow, streaming-exec, classic-api, sql-scripting |
+| `core` | rdd-layer, execution-engine, shuffle-memory, storage-serializer, infra, rpc-resources, api-bridge |
+| `sql/pipelines` | graph, autocdc, pipeline-runtime |
+| `sql/connect` | client-server, declarative-pipelines |
+| `resource-managers/kubernetes` | driver-executor, auth-networking |
+| `resource-managers/yarn` | am-executor |
+| `sql/hive` | hive-metastore |
+| `streaming` | dstream |
+| `connector/kafka-0-10` | consumer |
+| `connector/kafka-0-10-sql` | source-sink |
+| `connector/profiler` | async-profiler |
+
+**Config counts deliberately live only in `index.md`.** The sweep-status table there is generated
+from `catalog.yaml` on every `coverage` run, so it is always right; a copy here would be a second
+number to maintain and would silently rot at the next release (this table carried v4.1.2 counts
+well past the 4.2.0 catalog refresh). Read counts there, not here.
+
+`sql/core` and `sql/pipelines` register no configs of their own — nearly every SQL config is
+declared in catalyst's `SQLConf.scala` — but they hold the physical execution for most of the
+book's topics and are the highest-value sweeps.
+
+!!! warning "Structured Streaming is not in the `streaming` subsystem"
+
+    The `streaming` module is DStream only. Structured Streaming executes in `sql/core`
+    (`execution/streaming/runtime/`) and is covered by the `sql/core — streaming-exec` group.
 
 Sweep in book-priority order: `sql/catalyst` and `sql/core` first (highest config density, most
 relevant to the book). For large subsystems pick one group per run.
 
-Sweeps already done: `core — rdd-layer` (partial).
+Sweeps already done: `core — rdd-layer` (`status: complete`; the other four `core` groups are
+still pending). Check the sweep-status table in `index.md` rather than trusting this line.
 
-1. **Pre-flight:** confirm `configs/catalog.yaml` exists and note its `meta.spark_version`.
-2. **Scope check.** Big subsystems (`sql/catalyst`, `sql/core`) are too large for one pass.
-   Enumerate the candidate concepts (from `groups.yaml` scope field + package layout), then ask
-   the user to pick a group. A single-group run sets `status: partial`.
+1. **Pre-flight:** confirm `configs/catalog.yaml` exists and note its `meta.spark_version`. Run
+   `gen_coverage.py --list-groups <subsystem>` to see the groups and which are already swept.
+2. **Scope check.** If the user named a group, confirm it exists in that listing and go. If not,
+   show the groups with their scopes and ask which to sweep — never pick silently, and never
+   attempt the whole subsystem. A run covering one group of several sets `status: partial`
+   *for the subsystem*; the page's own `status:` describes whether that group's scope was
+   fully covered.
 3. **Config slice:** extract all configs whose `subsystem` matches from `catalog.yaml`.
 4. **Dispatch a sweeper subagent** (see "Sweeper subagent brief"). Give it: the subsystem path,
    the config slice, `docs/learning-path.md` (for existing topic codes), and `groups.yaml`
    (for group scope definitions).
 5. **Write** `docs/reference/spark-source-map/sweeps/<slug>.md` using the sweep page contract
-   below. `<slug>` is the subsystem with `/` → `-` (e.g. `sql/core` → `sql-core`).
+   below. `<slug>` is the subsystem with `/` → `-`, then `-<group>` when the run covered one
+   group (e.g. `core` + group `rdd-layer` → `core-rdd-layer.md`; `sql/catalyst` + `optimizer`
+   → `sql-catalyst-optimizer.md`). **One page per group — never merge groups into one file.**
+   `gen_coverage.py` keys the sweep-status table on `(subsystem, group)` and `group:` is a
+   scalar, so a file holding two groups reports only one and the other stays `⬜ pending`.
+   Filenames are otherwise meaningless to the generator — it globs `sweeps/*.md` and reads
+   front matter — but they must be unique, hence the group suffix.
 
    **Sweep the subsystem, not the concepts you already recognise.** The stopping condition is
    *the group's scope is covered* — never *the page has enough concepts*. A sweep exists to find
@@ -228,6 +338,56 @@ Sweeps already done: `core — rdd-layer` (partial).
 
 ---
 
+### `regroup <subsystem>` — recarve groups.yaml (hand-authored, checker-verified)
+
+Triggers: "regroup core", "add a group for X", "groups.yaml is missing Y", "check the carving",
+"what isn't covered by any group".
+
+`groups.yaml` is hand-authored — no generator writes it, so nothing notices when its scopes
+drift from the source or when a new package has no owner. A package no group claims can never
+be swept, so the gap conceals itself.
+
+1. **Survey.** `check_drift.py --coverage` for unclaimed packages and identical-path collisions;
+   `gen_coverage.py --list-groups <subsystem>` for the current carving and what is already swept.
+2. **Propose, then ask.** What deserves a group is editorial — it changes the sweep plan and the
+   learning path. Bring a concrete proposal (new groups, extended scopes, with file counts and
+   the topics each would back) and let the user choose. Note which unclaimed packages are
+   plumbing you deliberately excluded (`util/`, `errors/`, `test/`, `dsl/`).
+3. **Edit, avoiding the two YAML traps.** Numbers ascend within a subsystem; inserting after a
+   `scope:` line orphans the following `description:` onto the new group, which `yaml.safe_load`
+   accepts silently. Insert after `description:`, then verify with a duplicate-key-aware parse
+   (the snippet is in the repo README, "Editing groups.yaml").
+4. **Name real classes** — `WholeStageCodegenExec`, not "Whole-Stage CodeGen". A name is what
+   makes a scope checkable. Then run `check_drift.py` and expect to be wrong: when a class
+   legitimately lives in another module, add it to that group's `modules:` list rather than
+   vaguening the scope. Loop until it exits 0.
+5. **Re-run `--coverage`** to confirm the gap closed and no identical-path collision appeared.
+   Declare deliberate sharing with `shared_scope: true`.
+6. **Bump `_meta`** (`spark_version`, `verified_at`) and record *why* in `_meta.note` — nothing
+   else captures the reasoning.
+7. **Regenerate and sync.** `gen_coverage.py`, then update the group tables in the repo README
+   and in this file — both are hand-copied and drift the moment a group is added.
+8. **Commit** `groups.yaml` with the regenerated `index.md` and the doc updates, one commit.
+
+---
+
+### `new spark release <version>` — full release runbook
+
+Triggers: "Spark 4.3 is out", "update to the new Spark", "bump the source map to <version>".
+
+Run the seven-step runbook in the repo README ("When a new Spark version ships"), in order:
+move the checkout to the tag; `gen_configs.py` plus the parser tests, checking the >1000 floor;
+`check_drift.py` and fix every scope it names; `gen_coverage.py`; identify which topic and sweep
+pages need re-tracing (**re-verify anchors against the checkout — never bump the tag in a URL**,
+line numbers drift heavily and a stale anchor still renders fine on GitHub); reconcile
+`learning-path.md`'s header, `spark-book/index.md` statuses and chapter version lines; commit
+together.
+
+Re-tracing pages is a `trace` run each, one topic per run — propose the list and let the user
+pick, rather than doing all of them unasked.
+
+---
+
 ### `coverage` — regenerate the landing page + matrix (deterministic, cheap)
 
 ```
@@ -268,6 +428,10 @@ The topic tracer writes Markdown with this front matter — `gen_coverage.py` re
 topic: B7
 title: "Joins: Types and Mechanics"
 status: complete          # or: partial
+spark_version: "4.2.0"    # the Spark the anchors were verified against
+# version_pinned: "<reason>"   # set ONLY when an older spark_version is deliberate
+#   rather than stale — e.g. Iceberg and Delta ship no Spark 4.2 module, so those
+#   traces pin to 4.1. check_drift.py stops flagging the page as drifted.
 chapter: 10               # chapter from spark-book/index.md (optional)
 repos: [apache/spark]     # source repos consulted
 configs:
@@ -324,7 +488,11 @@ subsystem: sql/core
 spark_version: "4.1.2"    # copy from catalog meta
 swept_at: 2026-06-06       # date this sweep was run (ISO 8601)
 group: joins-and-agg       # optional; set when sweeping a large subsystem in parts
-all_groups: [joins-and-agg, streaming-integration, connector-v2]  # all planned groups; only on first page
+# All planned groups for this subsystem, copied from groups.yaml in that order.
+# Repeat it identically on EVERY page for the subsystem — gen_coverage.py takes the
+# list from whichever page sorts first alphabetically, so a page that omits it or
+# carries a stale list silently drops rows from the sweep-status table.
+all_groups: [joins-and-agg, streaming-integration, connector-v2]
 status: complete            # or: partial
 concepts:
   - name: joins
@@ -354,7 +522,7 @@ concepts:
 Dispatch a `feature-dev:code-explorer` (or general-purpose) subagent, read-only, with:
 
 > Trace learning-path topic **`<code>` — `<title>`** in Apache Spark at
-> `C:\opt\learn\spark\spark`.
+> `C:\opt\learn\spark\repos\spark`.
 >
 > For this topic: identify the key source classes and their entry points, trace the
 > analysis/planning/execution path, and annotate each class with `file:line` anchors.
@@ -395,7 +563,7 @@ Dispatch a `feature-dev:code-explorer` (or general-purpose) subagent, read-only,
 
 Dispatch a `feature-dev:code-explorer` (or general-purpose) subagent, read-only, with:
 
-> Sweep the **`<subsystem>`** subsystem of Apache Spark at `C:\opt\learn\spark\spark`.
+> Sweep the **`<subsystem>`** subsystem of Apache Spark at `C:\opt\learn\spark\repos\spark`.
 >
 > For each major concept in scope (see supplied groups.yaml scope field): identify the
 > entry point, the analysis/planning path, and the physical execution classes — with
@@ -425,8 +593,10 @@ Dispatch a `feature-dev:code-explorer` (or general-purpose) subagent, read-only,
   a 4-space-indented body) for every note, caveat, or aside — in topic pages, sweep pages, chapters,
   and the learning path alike. Pick the type by what the reader must do: `warning` for something
   that will bite them, `info` for a naming or behaviour clarification, `note` for additive context.
-  - **One exception:** directly after a bullet list, a bare `!!!` block does not render — put the
-    admonition before the list, separate it with a paragraph, or fall back to a `>` blockquote there.
+  - Admonitions render correctly **anywhere**, including directly after a bullet or numbered list.
+    An earlier version of this file claimed otherwise; that was a misdiagnosis of a missing
+    `admonition` markdown extension in `zensical.toml`, fixed 2026-07-18. If an `!!!` block ever
+    renders as literal text again, check the extension is still enabled before rewriting content.
   - Chapter *metadata* headers (`> *Learning-path topic: …*`) stay blockquotes; they are a header
     block, not a callout.
 - Every new **page** must be added to `zensical.toml` nav. Data files (`catalog.yaml`) and
@@ -434,6 +604,14 @@ Dispatch a `feature-dev:code-explorer` (or general-purpose) subagent, read-only,
 - Verify all Spark facts against the **local source**, not the web.
 - Never hand-edit generated files (`catalog.yaml`, `configs/index.md`, `index.md`) — re-run
   the generator. Topic and sweep pages are authored; their front matter feeds `gen_coverage.py`.
+- **`groups.yaml` is hand-authored**, despite sitting beside two generated files. No tool writes
+  it — `gen_configs.py` and `gen_coverage.py` only read it. Editing it directly is the *only* way
+  to change it, and no generator run will notice when its scopes drift from the source. Its
+  `_meta.spark_version` / `verified_at` record when the scopes were last walked against a
+  checkout; re-verify and bump them whenever you re-point the catalog at a new Spark release,
+  since nothing else will catch a stale scope. Group `scope` fields are package *hints* for a
+  human or a sweeper subagent — not resolvable paths, so a literal path check will throw false
+  positives.
 
 ## Tests
 
