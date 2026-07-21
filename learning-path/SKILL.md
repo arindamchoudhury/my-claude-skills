@@ -165,6 +165,48 @@ Keep it cheap: this runs on every note, so it must stay a quick diff, never a re
 
 ---
 
+## Phase 5b — Source coverage fold-in (blog / release notes → path)
+
+**Trigger:** the user drops a release blog, "what's new" page, or release-notes URL and wants its
+features reflected in the path ("are these in the path", "fold the 4.2 features in", "make sure we
+covered everything in this post"). This is heavier than a Phase-5 note reconcile — it is a **complete
+coverage audit against one external document** — but it must run **in a single pass**, not as a
+grep-a-few-then-declare-done followed by rounds of the user saying "recheck". Do all seven steps every
+time, in order.
+
+1. **Fetch the source VERBATIM first — never audit against a paraphrase.** `WebFetch` silently drops
+   facts on vendor/marketing pages (question counts, sub-features, the third item in a list). Run
+   `python scripts/fetch_page.py "<url>" --slug <slug>` and Read `cache/web/<slug>.txt`. The verbatim
+   text is the authoritative feature list; a WebFetch summary is an *incomplete* source, and an audit
+   against an incomplete source is incomplete no matter how carefully you walk it. (This is the exact
+   mistake that cost a multi-round recheck once — do not repeat it.)
+2. **Enumerate the COMPLETE feature list up front.** Walk the verbatim body top to bottom and extract
+   every distinct feature, including sub-bullets and the second/third item inside a sentence
+   ("distance *and* similarity functions, normalization, *and* aggregation" = four items, not one).
+   Build the cross-check table now, before editing anything — the table is the first deliverable.
+3. **Cross-check each item against the current path** with `Grep`. Grep confirms what you name; it
+   cannot reveal what you forgot to name — so this step only works because step 2 enumerated the whole
+   list. Mark each item: already-placed (cite `file:line`), or gap.
+4. **Fold each gap into its topic** as a dated `!!! note "New in Spark X.Y — …"` callout under the
+   right level (Beginner/Intermediate/Advanced/Expert). A sub-point of an existing topic extends that
+   topic's callout; a genuinely new concept can get its own. **Do not invent JIRA/issue IDs** — cite
+   the blog + release notes generically unless you have verified the exact ID against source.
+5. **Decide the below-threshold items explicitly.** The path is a *study guide*, not a changelog:
+   pure internal hardening / connector-plumbing with no distinct learnable surface stays out. Flag
+   those to the user with the reason ("no learnable surface"), don't silently drop them — let the user
+   overrule.
+6. **Re-read every edit in-file to confirm it landed** (not just "Edit returned success"), then bump
+   the header `Last updated` changelog with a one-line summary of what was folded where, and add the
+   source to `Sources consulted`.
+7. **Present the full cross-check table** (every enumerated item → home or deliberate-omission) as the
+   result, and offer the commit. This table *is* the proof the audit was complete — produce it once,
+   in the first response, so no "recheck" round is needed.
+
+Staleness (Phase-5 check 5) still applies: if a fold-in adds material to a topic whose chapter is
+already written, flip that chapter `✅` → `🔄` in all three places.
+
+---
+
 ## Topic Slug Derivation
 
 Convert the user's topic to a lowercase kebab-case slug:
