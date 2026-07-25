@@ -111,6 +111,14 @@ A chapter is fit to its topic, not poured into fixed headings.
 - **Config-driven state ops** — prefer `import` / `moved` / `removed` blocks over `terraform state mv/rm` CLI surgery in written examples; show the CLI only when explaining recovery.
 - **No secrets in HCL or state examples** — use variables + `sensitive = true`, reference Vault / dynamic credentials; never hard-code a key even in a sample.
 - **Explicit versions in prose** — when a feature is version-gated, say so ("`terraform test` requires ≥ 1.6"; "dynamic `prevent_destroy` is OpenTofu-only").
+- **Version-gate every source-derived claim.** The checkouts at `C:\opt\learn\terraform\repos\` track **`main`**, which is ahead of the release the book targets. Reading a behavior in `internal/` proves what `main` does, not what the current stable release does. Before that behavior goes into a chapter — and *especially* before "correcting" a reading note against it — find the release it shipped in:
+
+    ```bash
+    git log -S'<exact changed string>' --oneline -- <path>   # the commit
+    git tag --contains <sha> | head -5                        # the first release
+    ```
+
+    If the first tag is a pre-release above the target version, the target-version behavior stays the chapter's main text and the newer behavior goes in an `!!! info "… in <version>"` box. A reading note only earns a 🔄 marker once the contradicting change is confirmed shipped at or below the target version. Ch3's cycle-error output was "corrected" the wrong way exactly this way: `dag.go` on `main` renders cycles vertically, but that commit lands only in `v1.16.0-alpha*`, so 1.15.7's comma-joined line was right all along.
 - **Show the plan.** When behavior is non-obvious, include the relevant `terraform plan` output excerpt (`+`/`~`/`-/+`) so the reader can predict it.
 - **Name the tool.** When Terraform and OpenTofu differ, say which; otherwise write tool-neutral (`terraform`/`tofu` are interchangeable for shared features).
 
@@ -140,6 +148,8 @@ Every chapter from **B2 onward** ends with a `## 🧪 Lab` section (placed **bef
 
 **Every callout is a MkDocs admonition (`!!! type "Title"`) — never a `>` blockquote.** Blockquotes are reserved for the chapter-header front-matter block (source citation + summary + see-also) only. Any note, definition, aside, tip, warning, version-gate, or "(mine)" observation in the chapter body MUST be an admonition. Content indents 4 spaces under the `!!!` line; never indent a callout inside a list item.
 
+**Never escape a quote as `\"` inside the title string** — Zensical renders it as a literal backslash (`\"nines\"` shows on the page). Use curly quotes for a quoted phrase in a title: `!!! note "Measured in “nines”"`. Sweep after editing — `grep -rnE '^\s*(!!!|\?\?\?|===)\s+.*\\"' docs --include='*.md'` must be empty. See [[feedback_no_escaped_quotes_in_admonition_titles]].
+
 Fixed vocabulary (do not invent new types):
 
 | Use for | Admonition | Old blockquote marker |
@@ -154,12 +164,12 @@ Fixed vocabulary (do not invent new types):
 
 A `>` blockquote anywhere in the chapter body is a defect — convert it before committing.
 
-## Current versions (verified 2026-07-04 — see docs/research-cache/version-facts.md)
+## Current versions (verified 2026-07-20 — see docs/research-cache/version-facts.md)
 
 | Tool | Version | License |
 |------|---------|---------|
-| Terraform CLI | 1.15.7 | BSL 1.1 |
-| OpenTofu | 1.12.3 | MPL 2.0 |
+| Terraform CLI | 1.15.8 | BSL 1.1 |
+| OpenTofu | 1.12.4 | MPL 2.0 |
 
 > Always re-check `docs/research-cache/version-facts.md` before writing — it's the single source of truth and is bumped as releases ship.
 

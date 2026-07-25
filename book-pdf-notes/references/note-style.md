@@ -119,6 +119,12 @@ $ initdb -D /postgres/18/data
 
 Common types: `note`, `tip`, `warning`, `danger`, `info`, `example`, `quote`. Pick the one that matches the intent (`tip` for a shortcut, `warning`/`danger` for a pitfall, `info` for a version note).
 
+**Never escape a quote as `\"` inside the title string.** The title (`!!! note "…"`, `??? …`, and content-tab `=== "…"`) is not full Markdown — Zensical passes `\"` through verbatim, so it renders with a literal backslash (`\"nines\"` shows on the page). Use **curly quotes** for a quoted phrase in a title: `!!! note "Measured in “nines”"`. After writing titles, sweep for stray escapes — this should return nothing:
+
+```bash
+grep -rnE '^\s*(!!!|\?\?\?|===)\s+.*\\"' docs --include='*.md'
+```
+
 A plain emoji-blockquote is acceptable **only** for a single-line aside that stands alone (not adjacent to a list, no table/code inside):
 
 - `> 💡 **Tip** — one sentence.`

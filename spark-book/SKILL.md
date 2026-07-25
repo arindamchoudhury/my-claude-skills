@@ -223,7 +223,7 @@ One paragraph: what this chapter is about and why the topic matters.
       a null result will now fail the job.
   ```
 
-  Choose the type by what the reader must do about it: `warning` for something that will bite them, `info` for a naming or behaviour clarification, `note` for additive context. Two carve-outs: the chapter's metadata header (`> *Learning-path topic: …*`) stays a blockquote because it is a header block rather than a callout; and directly after a bullet list a bare `!!!` does not render, so either move the admonition above the list or use a `>` blockquote in that one spot.
+  Choose the type by what the reader must do about it: `warning` for something that will bite them, `info` for a naming or behaviour clarification, `note` for additive context. One carve-out: the chapter's metadata header (`> *Learning-path topic: …*`) stays a blockquote, because it is a header block rather than a callout. Admonitions otherwise render anywhere, including directly after a list — an earlier version of this file claimed they did not, which was a misdiagnosis of a missing `admonition` markdown extension in `zensical.toml` (fixed 2026-07-18). If an `!!!` block renders as literal text, check that extension before rewriting content.
 
 ### Toolkit — use the elements the topic needs, in the order that serves it
 

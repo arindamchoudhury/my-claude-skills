@@ -149,7 +149,7 @@ Check each URL before committing it. If a local source checkout exists, the docs
 
 Every note, caveat, or aside in the path is an `!!!` admonition with a quoted title and a 4-space-indented body — never a `>` blockquote. Choose the type by what the reader must do about it: `warning` for something that will bite them (a changed default, a book that is now wrong), `info` for a naming or behaviour clarification, `note` for additive context such as a new feature.
 
-The one carve-out: directly after a bullet list a bare `!!!` block does not render — put the admonition before the list, or separate the two with a paragraph.
+Admonitions render anywhere, including directly after a list. (An earlier note here claimed otherwise; that was a missing `admonition` markdown extension in the site config, not a Markdown limitation. If `!!!` ever renders as literal text, check the extension before rewriting content.)
 
 ### Flag outdated resources
 
