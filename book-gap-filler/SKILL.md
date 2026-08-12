@@ -165,14 +165,30 @@ and `zensical.toml` — and commit with a message that lists:
 
 ---
 
-## Chapter-to-stub lookup (Spark book)
+## Chapter-to-topic lookup (Spark book)
 
-Use the spark-book skill's Chapter Arc table for chapter numbers and slugs.
-The full arc is: B1–B9 → Ch01–09, I1–I10 → Ch10–19, A1–A10 → Ch20–29,
-E1–E9 → Ch30–38.
+**Read the mapping from the repo, never from a table in a skill.** Two files are ground
+truth and they disagree with any arc written down elsewhere:
 
-Existing stub files (as of June 2026):
-- `ch15-caching-persistence.md` (I6)
-- `ch22-join-strategies.md` (A3)
-- `ch30-spark-internals.md` (E1)
-- `ch31-cluster-management.md` (E2)
+- `docs/spark-book/index.md` — every chapter with its status, number, topic code and link
+- `zensical.toml` nav — the second check
+
+The book's numbering does not follow topic-code order (RDDs are Ch05, UDFs are Ch15), and
+the learning path was renumbered wholesale when v2 replaced v1, so a remembered arc is
+wrong twice over. Topic codes on the index rows are **v2 codes** from
+`docs/learning-path-v2.md` (185 topics: B1–B12, I1–I53, A1–A60, E1–E60).
+`docs/learning-path.md` is v1 — deprecated and frozen, and its codes mean different topics.
+
+Sixteen chapters exist (01–16). Everything beyond that is unwritten; check the index
+before assuming a stub is there.
+
+## Where the learning path fits
+
+A gap in a chapter is often a gap the path already names. Before adding material, read the
+chapter's topic in `docs/learning-path-v2.md` — its **What**, **Why** and any `>` callouts
+carry the mechanism and the verified defaults, and 41 topics were rewritten in August 2026
+with facts checked against the local checkout. Prefer folding that in over researching it
+again.
+
+If the chapter's topic is one of the twelve earmarked for a hands-on lab, the lab is
+written with the chapter — see the `spark-book` skill's Step 4b.

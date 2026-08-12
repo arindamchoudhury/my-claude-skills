@@ -134,7 +134,8 @@ after**, as the last step, to keep the path honest. If you wrote the note in thi
 before signing off. If the user says "I took a note on X" after the fact, run Phase 5 against that note.
 
 This is a **lightweight** reconcile, not a Phase 4 review — do **not** re-fetch vendor pages. Diff only
-the new note against `docs/learning-path.md`. Four checks:
+the new note against the project's learning path — `docs/learning-path.md` by default, but check
+for a superseding file first (see the layout table below). Four checks:
 
 1. **New topic / subtopic.** Does the note cover a concept the path doesn't list at all? → add it under
    the right level (Beginner / Intermediate / Advanced / Expert) with the standard fields (what / why /
@@ -228,6 +229,12 @@ phases agree — Phase 1 creates them, Phase 3 reads/writes them, Phase 4 syncs 
 | Path | Holds | Written by |
 |---|---|---|
 | `docs/learning-path.md` | the learning path | Phase 2 / Phase 4 |
+
+> **Check the filename before writing to it.** A project may have superseded its path with a
+> renamed file — the Spark notes use `docs/learning-path-v2.md`, with `docs/learning-path.md`
+> kept as a deprecated, frozen v1 whose topic codes mean different topics. `ls docs/` and read
+> the top of the file you find; a deprecation banner is the signal. Never update a file marked
+> frozen, and never assume the default name is the live one.
 | `docs/book/` | synthesized book chapters (`ch<NN>-<slug>.md` + `index.md`) | Phase 3 / `<topic>-book` skill |
 | `docs/sources/` | source-faithful reading notes, one dir per book/course | note skills (`book-pdf-notes`, etc.) |
 | `docs/research-cache/` | verified API/version facts captured during research | Phase 3 / Phase 4 |
