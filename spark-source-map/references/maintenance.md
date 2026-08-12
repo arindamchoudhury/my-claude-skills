@@ -58,7 +58,7 @@ adds a package under an already-swept scope turns a `status: complete` page into
 `--sweeps` is the only thing that notices); `gen_coverage.py`; **`refresh_anchors.py`, dry run then
 `--apply`** (never find-and-replace the tag in a URL — line numbers drift heavily and a stale anchor
 still renders fine on GitHub; the tool re-resolves by content and reports what it cannot place);
-then decide which pages need a real re-trace on top of that; reconcile `learning-path.md`'s header,
+then decide which pages need a real re-trace on top of that; reconcile `learning-path-v2.md`'s header,
 `spark-book/index.md` statuses and chapter version lines; commit together.
 
 `refresh_anchors.py` settles line numbers, not meaning. A resolved anchor points at the same line

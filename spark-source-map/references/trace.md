@@ -8,7 +8,7 @@
 
 There are three tiers — understanding them is required for the "Chapter notes" section:
 
-1. **Learning path** (`docs/learning-path.md`) — advises which external books to read for each topic (Rioux Ch X, LS2e Ch Y, etc.). Does not represent the synthesis.
+1. **Learning path** (`docs/learning-path-v2.md`) — advises which external books to read for each topic (Rioux Ch X, LS2e Ch Y, etc.). Does not represent the synthesis.
 2. **Book notes** (`docs/books/<slug>/chapters/`) — raw notes taken while reading each external book.
 3. **Spark book** (`docs/spark-book/ch<NN>-*.md`) — the synthesized personal book. This is the *output* of all learning. The spark-book `index.md` maps each topic code to its chapter(s).
 
@@ -23,7 +23,7 @@ The "Chapter notes" section in a topic trace is a **gap analysis against the spa
 For each learning-path topic (B7, I4, A11, …), find the source code, configs, and key classes
 that back it. One topic per run.
 
-1. **Pre-flight:** look up the topic in `docs/learning-path.md` to get its title and level.
+1. **Pre-flight:** look up the topic in `docs/learning-path-v2.md` to get its title and level.
    Confirm which repo(s) are relevant (most topics: `C:\opt\learn\spark\repos\spark`; Delta Lake
    topics: check the local Delta repo; Dagster/Unity Catalog: note they require network access
    or local clones).
@@ -31,7 +31,7 @@ that back it. One topic per run.
    `autoBroadcastJoin`, `join.prefer`, `adaptive` — take the relevant slice).
 3. **Run the tracer brief** ("Topic tracer subagent brief", at the end of this file) — inline, or dispatched to a
    read-only subagent if the harness allows agent calls and the user asked for one. Give it: the topic code,
-   title, and description from `learning-path.md`; the config slice; the Spark source path.
+   title, and description from `learning-path-v2.md`; the config slice; the Spark source path.
 4. **Write** `docs/reference/spark-source-map/topics/<code>.md` using the topic page contract
    below. `<code>` is the topic code in lowercase (e.g. `B7` → `b7.md`).
 
@@ -56,7 +56,7 @@ that back it. One topic per run.
    silently deserves an anchor precisely because nothing else will surface it.
 5. **Reconcile the learning-path topic — always, every trace.** A trace that only produces a topic
    page is half-finished: the path is what the user actually reads when deciding what to study, and
-   it will not mention the trace unless you put it there. Open `docs/learning-path.md` at this
+   it will not mention the trace unless you put it there. Open `docs/learning-path-v2.md` at this
    topic and update, in this order:
 
    - **"Learn it with" — the important one.** Add the trace as the last entry, after the books and
@@ -89,7 +89,7 @@ that back it. One topic per run.
    - `docs/spark-book/index.md` — the status cell, ✅ → 🔄
    - the chapter file — a dated `> 🔄 **Needs revisiting — …**` banner under the header block,
      saying what specifically drifted and linking the trace
-   - `docs/learning-path.md` — the topic heading, `### ✅ <code>` → `### 🔄 <code>`, and the
+   - `docs/learning-path-v2.md` — the topic heading, `#### ✅ <code>` → `#### 🔄 <code>`, and the
      "Carrying 🔄" summary line
 
    Distinguish **wrong** from **incomplete** in the banner, and say which this is. A chapter with

@@ -63,11 +63,22 @@ legitimate and productive run, not a no-op. `status: complete` means the last pa
 covered the scope; it is not evidence that it had. Do not decline the verb because the listing says
 complete — run the two breadth checks above and let them decide whether there is work.
 
+**Screen for candidates with the per-package ratios `check_drift.py --sweeps` prints** (see the
+checks section in `SKILL.md`). Under ~50% cited on a `status: complete` page means the page is
+almost certainly a re-declaration; that is the whole pre-flight.
+
 Evidence from re-sweeping all nine `core` groups at an unchanged 4.2.0 (2026-07-25): **every one of
 the eight attempted found new concepts**, 30 in total, and three of them justified new
 learning-path topics (E17 output commit coordination, A20 map output sizes, I19 sampling). Two
 groups had a whole layer missing — `BlockTransferService` and the Hadoop commit protocol — on pages
 that both checkers passed.
+
+Evidence from the second re-sweep of `core — execution-engine` (2026-08-09), the group that batch
+had *already* re-swept: still only **24 of 88 in-scope files cited**. Eleven concepts and two topics
+(E49, E50) came out of it, including the entire per-task metrics layer, the `Task`/`TaskDescription`
+pair, and `SparkHadoopWriter` — a class the group's own scope names. **One re-sweep does not settle
+a group**; the July pass fixed the package the *config* check pointed at (`internal/io/`) and never
+walked the other three.
 
 Two things to do differently on a re-sweep:
 
@@ -82,6 +93,12 @@ Two things to do differently on a re-sweep:
   mappings are new to this run misses them — `B1` and `A14` had carried a storage mapping since
   July with no resource entry, found only by listing every topic in the front matter and diffing
   against the ones that link the page.
+- **A page missing its trailing sections is itself the finding.** Before reading any source, check
+  the page has all four `##` sections. One with a sweep log and no breadth checks was never
+  breadth-checked — nothing recorded what it skipped, so `status: complete` on it means only that
+  someone stopped. `core — execution-engine` was in exactly that state and is not one of the nine
+  `sql/core` pages the "do not invent a fifth shape" warning names, so **audit the shape per page**;
+  the known-bad list is not the whole set.
 
 1. **Pre-flight:** confirm `configs/catalog.yaml` exists and note its `meta.spark_version`. Run
    `gen_coverage.py --list-groups <subsystem>` to see the groups and which are already swept.
@@ -115,7 +132,7 @@ Two things to do differently on a re-sweep:
    requirement: run it inline yourself, or dispatch a read-only subagent **if the harness allows
    agent calls and the user asked for one**. Some harnesses forbid unprompted subagent spawning —
    in those, work the brief inline and say so in the summary rather than silently skipping it.
-   Either way the inputs are the same: the subsystem path, the config slice, `docs/learning-path.md`
+   Either way the inputs are the same: the subsystem path, the config slice, `docs/learning-path-v2.md`
    (for existing topic codes), and `groups.yaml` (for group scope definitions).
 5. **Write** `docs/reference/spark-source-map/sweeps/<slug>.md` using the sweep page contract
    below. `<slug>` is the subsystem with `/` → `-`, then `-<group>` when the run covered one
@@ -157,6 +174,10 @@ Two things to do differently on a re-sweep:
    Record what you *chose not to* cover. A sweep that silently omits half its scope is worse than
    one marked `status: partial` with the remainder named — the first looks finished.
 
+   **Then write the four trailing sections** — both breadth checks, the overlapping topic traces,
+   and the sweep log. They are part of the contract, not an optional appendix, and both checkers
+   pass without them, so nothing but this instruction will catch their absence.
+
    **Check the topic traces that already cover your codes.** A sweep maps concepts to topic codes;
    any code that already has a `topics/<code>.md` page is prior coverage of the same rules from the
    other direction, and the two can disagree — most often because the trace was recorded against an
@@ -186,7 +207,7 @@ Two things to do differently on a re-sweep:
    Then flip any written chapter the sweep left behind to 🔄 — the three-place procedure is in
    `references/trace.md`, step 6.
 7. **Regenerate the matrix:** `python tools/spark_source_map/gen_coverage.py`
-   This auto-appends any `propose:` blocks to `learning-path.md`. Pass `--no-write-proposals` to skip.
+   This auto-appends any `propose:` blocks to `learning-path-v2.md`. Pass `--no-write-proposals` to skip.
 
    Then **verify the `status:` you just claimed**:
    ```
@@ -203,8 +224,6 @@ Two things to do differently on a re-sweep:
    fix the generator.
 8. **Wire** the new sweep page into `zensical.toml` nav under `Spark Source Map → Sweeps`;
    commit the sweep page, the learning-path edits from step 6, and any 🔄 status changes together.
-
----
 
 ---
 
@@ -233,7 +252,8 @@ concepts:
     topics: []              # no topic covers this yet — the sweep's actual product.
                             # Add a propose: block; it becomes a new learning-path topic.
     propose:
-      code: A12             # next unused code for this level (check learning-path.md)
+      code: A12             # next unused code for this level (check learning-path-v2.md);
+                            # if it is taken, gen_coverage.py reallocates rather than dropping
       level: Advanced       # Beginner | Intermediate | Advanced | Expert
       title: "Vectorized Reads and Columnar Execution"
       what: "One sentence: what this concept is."
@@ -247,6 +267,69 @@ concepts:
 **Configs:** `spark.sql.autoBroadcastJoinThreshold`, `spark.sql.join.preferSortMergeJoin`
 **Maps to topics:** B7 (Joins), A3 (Join Strategies)
 ```
+
+### Required trailing sections
+
+**A page is not finished at its last concept.** Four `##` sections close every page, in this order.
+No generator reads them — they are the record a human (or the next sweep) uses to judge whether the
+group is genuinely covered, which is exactly what neither checker can tell you. Write all four even
+when the answer is "nothing":
+
+```markdown
+## Breadth check 1 — the config slice
+## Breadth check 2 — the packages
+## Overlapping topic traces
+## Sweep log
+```
+
+- **Breadth check 1 — the config slice.** State the slice (the pattern from step 3, reproducibly),
+  the count, and tie every key to a concept. Keys the group does *not* read are a finding, not an
+  omission — say which group owns them. Configs the group reads that are **not in the catalog**
+  (dynamic prefixes, bare `getBoolean`/`getOption` string keys) belong here too; they are invisible
+  to `--sweeps` and so can only ever be caught by eye.
+
+    **Write every key literally in the `**Configs:**` lines — never a family or a suffix.**
+    `the spark.dynamicAllocation.* family`, or `` `spark.speculation`, `.interval`, `.multiplier` ``,
+    reads fine and defeats both the tooling and this check: `--sweeps` counts literal keys, so a
+    dozen attributed keys score as one, and *you* cannot tell an abbreviated family from a partly
+    swept one. `core — execution-engine` measured 38/111 on a literal count and 86/111 once the
+    shorthand was expanded — a 43-point error in the check that is supposed to decide whether the
+    group is done. Expand any shorthand you inherit before trusting the number.
+- **Breadth check 2 — the packages.** Walk the scope's packages *and their sub-packages by hand*,
+  and give the cited/total ratio per package. Name what you chose not to cover under a heading a
+  reader cannot mistake for coverage. This is the check that catches a missing layer;
+  `--coverage` structurally cannot see nested packages (see the checks table in `SKILL.md`).
+
+    Also walk the **class names the group's `scope` field spells out** — a named class that appears
+    nowhere on the page is the sharpest possible finding, and no checker looks for it.
+
+    Count citations against the **concept body only** (split on the first `## Breadth check 1`).
+    Counting the whole page folds this section's own uncited list, and the sweep log's filenames,
+    back in as citations — so the more honest the page, the more it over-reports.
+
+    For an uncited file, decide and say which: swept by another group (name it), plumbing with no
+    concept, or a genuine gap. **A file no sweep page anywhere cites is a finding worth recording
+    even when it belongs to another group** — that is how `SparkListener`, `SparkListenerBus`,
+    `ReplayListenerBus` and `StatsReportListener` were found missing from `core — monitoring`, by a
+    walk of `core — execution-engine`. Record it; do not fix the other group's page in this run.
+- **Overlapping topic traces.** List the `topics/<code>.md` pages that already cover any code in
+  your front matter — `check_drift.py --sweeps` prints them — and say for each whether you agree
+  with it or where the source has moved since. **Write the section even when there are none**, with
+  one line saying so; "no trace exists for these codes" and "I forgot to look" are indistinguishable
+  from a missing section.
+- **Sweep log.** A `| Date | Spark | What changed |` table, newest row last. One row per run: what
+  the run covered, the concept and proposal counts, which breadth check found the work, and the
+  findings worth carrying. On a re-sweep say plainly that it was a re-sweep and whether the version
+  changed — that is what tells the next reader whether the group is now covered or merely
+  re-declared complete. A page that is later re-resolved by `refresh anchors` gains a
+  `## Refresh log` alongside it.
+
+!!! warning "Do not invent a fifth shape"
+
+    The corpus drifted once already: a run of `sql/core` sweeps merged the two breadth checks into a
+    single `## Breadth checks`, dropped the overlap section partway through, and wrote **no sweep log
+    at all** on any of its nine pages. That is the one batch not to copy. The `resource-managers` and
+    `sql/pipelines` pages are the current standard.
 
 ---
 

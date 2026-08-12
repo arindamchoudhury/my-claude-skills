@@ -5,7 +5,7 @@ description: >
   C:\opt\learn\spark\notes\docs\spark-book\. Triggers on: "write the chapter for X",
   "I finished topic B3", "I just learned about window functions", "add a chapter on joins",
   "write the spark book chapter for structured streaming", any reference to a learning-path
-  topic code (B1–B9, I1–I10, A1–A10, E1–E9), or any request to add, draft, review, or
+  topic code (B1–B12, I1–I53, A1–A60, E1–E60), or any request to add, draft, review, or
   extend a chapter in the Spark personal book. The book lives at the site
   C:\opt\learn\spark\notes and is built with Zensical.
 ---
@@ -16,7 +16,7 @@ description: >
 
 Writing the personal Spark/PySpark book at `C:\opt\learn\spark\notes\docs\spark-book\`.
 
-Each chapter corresponds to one topic from the learning path (`docs/learning-path.md`). As the user masters a topic (via books, MOOCs, or hands-on work), they trigger this skill to write the chapter. The book is their synthesis — not notes from a single source, but their own explanation of the topic in their own words, verified against current Spark 4.x docs.
+Each chapter corresponds to one topic from the learning path (`docs/learning-path-v2.md`). As the user masters a topic (via books, MOOCs, or hands-on work), they trigger this skill to write the chapter. The book is their synthesis — not notes from a single source, but their own explanation of the topic in their own words, verified against current Spark 4.x docs.
 
 The book structure mirrors the learning path exactly:
 
@@ -29,69 +29,25 @@ Part 4 — Expert       (Chapters 30–38)
 
 ---
 
-## Chapter Arc (full map)
+## Chapter arc — read it from the repo, not from here
 
-Every chapter number maps to a learning-path topic code. Use this to determine chapter number, slug, and which learning-path section to cross-reference.
+**Ground truth is `docs/spark-book/index.md`**, whose table lists every chapter with its
+status, number, v2 topic code, title and link; `zensical.toml`'s nav is the second check.
+This skill used to carry its own arc table and it drifted twice — the book's real numbering
+does not match a naive topic-code order (RDDs are Ch 05, UDFs are Ch 13), and the learning
+path was renumbered wholesale when v2 replaced v1. Do not reconstruct the mapping from
+memory or from topic codes.
 
-### Part 1 — Beginner
+Before writing, read that index and take from it:
 
-| Ch | Topic code | Title | Slug |
-|---|---|---|---|
-| 01 | B1 | Spark Architecture and the Execution Model | `spark-architecture` |
-| 02 | B2 | SparkSession and Entry Points | `sparksession` |
-| 03 | B3 | The DataFrame API: Basics | `dataframe-basics` |
-| 04 | B4 | Reading and Writing Data | `reading-writing-data` |
-| 05 | B5 | Schema: StructType, DDL, and Type Safety | `schema-type-safety` |
-| 06 | B6 | Aggregations and GroupBy | `aggregations-groupby` |
-| 07 | B7 | Joins: Types and Mechanics | `joins` |
-| 08 | B8 | Spark SQL | `spark-sql` |
-| 09 | B9 | Null Handling | `null-handling` |
+- the next free chapter number,
+- the slug convention (`ch<NN>-<slug>.md`, slug derived from the title),
+- whether a chapter for this topic already exists (extend it rather than adding a second),
+- which chapters are 🔄 and might be better work than a new one.
 
-### Part 2 — Intermediate
-
-| Ch | Topic code | Title | Slug |
-|---|---|---|---|
-| 10 | I1 | Complex Types: Arrays, Maps, and Structs | `complex-types` |
-| 11 | I2 | Window Functions | `window-functions` |
-| 12 | I3 | User-Defined Functions: Python and pandas UDFs | `udfs` |
-| 13 | I4 | RDD Fundamentals | `rdds` |
-| 14 | I5 | Partitioning: Concepts and Control | `partitioning` |
-| 15 | I6 | Caching and Persistence | `caching` |
-| 16 | I7 | The Spark UI: Reading Plans and Diagnosing Jobs | `spark-ui` |
-| 17 | I8 | Delta Lake Basics | `delta-lake-basics` |
-| 18 | I9 | The Medallion Architecture | `medallion-architecture` |
-| 19 | I10 | Data Formats: Parquet, Delta, Avro, JSON | `data-formats` |
-
-### Part 3 — Advanced
-
-| Ch | Topic code | Title | Slug |
-|---|---|---|---|
-| 20 | A1 | Query Optimisation: Catalyst and the Physical Plan | `catalyst-physical-plan` |
-| 21 | A2 | Adaptive Query Execution | `aqe` |
-| 22 | A3 | Join Strategies and Tuning | `join-strategies` |
-| 23 | A4 | Data Skew and Shuffle Optimisation | `data-skew` |
-| 24 | A5 | Advanced pandas UDFs and UDFs on Windows | `advanced-udfs` |
-| 25 | A6 | Delta Lake Advanced: MERGE, SCD, Liquid Clustering | `delta-lake-advanced` |
-| 26 | A7 | Structured Streaming: Fundamentals | `streaming-fundamentals` |
-| 27 | A8 | Structured Streaming: Stateful Processing | `streaming-stateful` |
-| 28 | A9 | ML Pipelines with Spark MLlib | `ml-pipelines` |
-| 29 | A10 | Testing PySpark Pipelines | `testing-pipelines` |
-
-### Part 4 — Expert
-
-| Ch | Topic code | Title | Slug |
-|---|---|---|---|
-| 30 | E1 | Spark Internals: Memory, Execution, Serialisation | `spark-internals` |
-| 31 | E2 | Production Deployment: Cluster Management and Scaling | `production-deployment` |
-| 32 | E3 | Observability: Monitoring, Alerting, Logging | `observability` |
-| 33 | E4 | Delta Lake Internals: Transaction Log and MVCC | `delta-internals` |
-| 34 | E5 | Data Governance: Unity Catalog, Lineage, Security | `unity-catalog-governance` |
-| 35 | E6 | Pipeline Orchestration with Dagster | `dagster-orchestration` |
-| 36 | E7 | CI/CD for Data Engineering | `cicd-data-engineering` |
-| 37 | E8 | Change Data Capture and Slowly Changing Dimensions | `cdc-scd` |
-| 38 | E9 | Spark Connect and the Modern Client Architecture | `spark-connect` |
-
----
+Topic codes are **v2 codes** from `docs/learning-path-v2.md` (185 topics: B1–B12, I1–I53,
+A1–A60, E1–E60). `docs/learning-path.md` is v1 — deprecated and frozen; its codes mean
+different topics, and the v1 → v2 crosswalk lives at the end of v2.
 
 ## File locations
 
@@ -109,7 +65,7 @@ Chapter numbers are always **two-digit zero-padded** (`ch01`, `ch11`, `ch38`).
 ### Step 1 — Identify the chapter
 
 From the user's message, determine:
-- Which learning-path topic code was completed (B1–B9, I1–I10, A1–A10, E1–E9)
+- Which learning-path topic code was completed (B1–B12, I1–I53, A1–A60, E1–E60 in v2)
 - The chapter number and slug from the arc table above
 - Whether the chapter file already exists (read it if so — this may be an update, not a new chapter)
 
@@ -165,7 +121,7 @@ After writing the chapter, update all of these:
    - the status cell in `docs/spark-book/index.md`
    - a dated `> 🔄 **Needs revisiting — …**` banner under the chapter's header block, naming
      what specifically drifted
-   - the topic heading in `docs/learning-path.md` (`### ✅ <code>` → `### 🔄 <code>`) and the
+   - the topic heading in `docs/learning-path-v2.md` (`#### ✅ <code>` → `#### 🔄 <code>`) and the
      "Carrying 🔄" summary line
 
    Say in the banner whether the chapter is **wrong** (a false claim — a changed default, a

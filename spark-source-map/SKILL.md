@@ -24,8 +24,15 @@ description: >
 
 Hybrid pipeline for mining Apache Spark source to drive the spark-book.
 
+> **The learning path is `docs/learning-path-v2.md`** — 185 topics, `####` headings, one
+> 🎯 checkpoint closing each level. `docs/learning-path.md` is v1: deprecated, frozen, and
+> never read or written by this skill or by `gen_coverage.py`. v1 codes mean different
+> topics than v2 codes; the crosswalk is at the end of v2. Most v2 topics have **no trace
+> page** — the traces were written against v1 codes, so the coverage matrix showing them
+> untraced is accurate, not a bug.
+
 - **Topic traces** (`trace <topic-code>`) — start from a learning-path topic, find the backing source, configs, and code paths. Topic pages live at `docs/reference/spark-source-map/topics/<code>.md`.
-- **Source sweeps** (`sweep <subsystem>`) — scan a subsystem for concepts, **whether or not any topic covers them**. Sweep pages live at `docs/reference/spark-source-map/sweeps/<slug>.md`. Concepts no topic covers become `propose:` blocks, auto-appended to `learning-path.md`.
+- **Source sweeps** (`sweep <subsystem>`) — scan a subsystem for concepts, **whether or not any topic covers them**. Sweep pages live at `docs/reference/spark-source-map/sweeps/<slug>.md`. Concepts no topic covers become `propose:` blocks, auto-appended to `learning-path-v2.md`.
 - **Config catalog** (`gen configs`) — deterministic whole-repo config parser. Used as a lookup by both engines.
 
 ## What this skill is for — read before judging its output
@@ -220,13 +227,13 @@ python tools/spark_source_map/gen_coverage.py
 ```
 
 Rebuilds `docs/reference/spark-source-map/index.md` from:
-- `learning-path.md` (the 40 topics)
+- `learning-path-v2.md` (the 40 topics)
 - `spark-book/index.md` (topic → chapter mapping)
 - `configs/catalog.yaml` (subsystem config counts)
 - `topics/*.md` (topic-first traces — drives coverage matrix)
 - `sweeps/*.md` (source-first sweeps — drives gap discovery and sweep-status table)
 
-Also auto-appends `propose:` blocks from sweep gaps to `learning-path.md` (pass
+Also auto-appends `propose:` blocks from sweep gaps to `learning-path-v2.md` (pass
 `--no-write-proposals` to skip). Run after any trace, sweep, or `gen configs`, or whenever
 the learning path changes. Never hand-edit `index.md`.
 
@@ -298,9 +305,12 @@ order regardless of the order concepts are declared in, placement under the righ
 never reusing an existing topic's code, and idempotence on a repeated run.
 `test_refresh_anchors.py` covers anchor re-resolution: exact-content matching across insertions,
 the enclosing-declaration fallback, ambiguity handling, label rewriting, and the link regex.
-`test_check_drift.py` covers the config-coverage half of `--sweeps`: the family threshold, the
-partly-cited case, and subsystem-scoped `_meta.config_plumbing`. Run them after any change to the
-corresponding tool.
+`test_check_drift.py` covers two halves of `--sweeps`: the config-coverage half (family threshold,
+partly-cited case, subsystem-scoped `_meta.config_plumbing`) and the named-class half, which drives
+`report_sweeps()` against a miniature checkout built in `tmp_path` — a named class cited, a named
+class uncited, a capitalised prose word that resolves to no source, a class reached through the
+group's `modules:` list, and a `status: partial` page going unchecked. Run them after any change to
+the corresponding tool.
 
 The read-only checks, and what each one can actually catch:
 
@@ -308,10 +318,50 @@ The read-only checks, and what each one can actually catch:
 |---|---|---|
 | `check_drift.py` | a scope naming a class or package that no longer exists in its modules; a stale `_meta.spark_version`; pages recorded against an older Spark (warning) | yes, on scope errors |
 | `check_drift.py --coverage` | packages no group claims — code that can never be swept | no, editorial |
-| `check_drift.py --sweeps` | a `status: complete` page that cites nothing from a package its own scope claims; a whole config family cited by no page of a fully-swept subsystem; topic traces overlapping a sweep at a different Spark version | yes, on either uncited claim |
+| `check_drift.py --sweeps` | a `status: complete` page that cites nothing from a package its own scope claims; a `status: complete` page that never cites a **class its own scope names**; a whole config family cited by no page of a fully-swept subsystem; topic traces overlapping a sweep at a different Spark version | yes, on any uncited claim |
 
 None of them checks whether a sweep page's *prose* is true — that is what verifying every anchor
 against the local checkout is for.
+
+**The cheapest re-sweep trigger is the per-package ratio `--sweeps` already prints.** For each
+`status: complete` page it lists `<package>  N files  M cited  (P%)`. The check itself only *fails*
+on a package cited zero times, so those percentages pass silently — but they are the one number in
+the whole toolchain that reliably separates a swept group from a re-declared one. Read them on
+every run:
+
+```
+python tools/spark_source_map/check_drift.py --sweeps
+```
+
+Treat **anything under ~50% on a `status: complete` page as a re-sweep candidate**, and confirm by
+hand before acting: the printed totals include sub-package files and `package-info.java`, so they
+are a screening signal, not the number to quote. `core — execution-engine` sat at `executor/` 21%,
+`internal/io/` 33%, `scheduler/` 28% while passing every check, and the re-sweep it triggered
+(2026-08-09) added eleven concepts and two topics.
+
+**A class named in a group's `scope` is not evidence the sweep opened it** — but `--sweeps` now
+checks it. Check 3 only verifies that a named class still *exists* in the module; `SparkHadoopWriter`
+was named in `core — execution-engine`'s scope for two weeks, appeared on no page of a
+`status: complete` sweep, and every check passed until a file-by-file diff found it (2026-08-09).
+`--sweeps` now prints `scope names N class(es)  M cited` per page and **fails** any uncited one,
+because a scope names a class exactly when the package is too coarse — and the package check is
+satisfied by any one file from the same directory, so it structurally cannot see this miss.
+
+Three things it deliberately does not do, so a green line is not over-read:
+
+- **Only classes that resolve to real source are demanded.** Scope prose carries capitalised words
+  that are not classes; an unresolvable name is check 3's error, not this one, and is reported as
+  `(N unresolved — see check 3)` rather than failed twice.
+- **The whole page counts, breadth-check tables included.** A page that lists the class as knowingly
+  uncovered passes — it has at least seen it. Whether the prose does it justice is not mechanical.
+- **Prefixes do not count.** `BlockManagerMasterEndpoint` does not satisfy a demand for
+  `BlockManagerMaster`; they are different classes in different files. That distinction is what
+  flagged `core — storage-serializer` on the first real run.
+
+**Counting cited files: read the concept body only.** A naive grep for `*.scala` over the whole
+page counts the filenames listed in breadth check 2's own *uncited* table, and every filename in
+the sweep log, as citations — which inflates the number precisely on the pages that were honest
+about their gaps. Split on the first `## Breadth check 1` and count against what precedes it.
 
 **What `--coverage` structurally cannot catch: a nested package inside a claimed one.** It walks
 only the *top-level* packages under each source root (`root.iterdir()`), so once a scope token
