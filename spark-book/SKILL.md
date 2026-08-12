@@ -134,6 +134,38 @@ After writing the chapter, update all of these:
 3. **`docs/reference/glossary.md`** — append any new terms the chapter introduces (with source `Spark Book Ch NN`)
 4. **`docs/topics/index.md`** — add any new cross-cutting topics to the backlog if they aren't already there
 
+### Step 4b — Write the lab, if this topic has one
+
+Twelve topics are earmarked for a hands-on lab — a Jupyter notebook run against the
+local stack, where running the thing teaches what reading it cannot. **A lab is written
+with its chapter, not in a batch.** The list and the notebook contract are in
+`C:/opt/learn/spark/notes/docs/superpowers/specs/2026-08-12-spark-labs-design.md`; the
+step-by-step recipe (notebook shape, how to run it, how to wire it into the site) is
+`docs/superpowers/plans/2026-08-12-spark-labs.md`, Tasks 3-5.
+
+Labs are earmarked for: **B10**, **I28**/**I29**, **I24**, **A18**/**A19**, **A15**/**A16**,
+**I25**, **A11**/**A12**, **I37**/**A39**, **I10**/**I50**, **A32**/**A34**, **A59**/**A60**,
+**E29**/**A51**. If the chapter you just wrote is not one of these, skip this step.
+
+If it is one of these:
+
+1. Write `workspace/notebooks/labs/NN-<slug>.ipynb` in the stack repo
+   (`C:/opt/learn/spark/spark-delta-unitycatalog`), following the five-part shape in the
+   plan: header stating what you will observe · setup via `_labkit.session()` · data via
+   `_labkit.fetch()` · predict-then-run body · teardown.
+2. **Run it top to bottom** and correct every "roughly N" in the prose to match what you
+   observed. Numbers that contradict the output are worse than no numbers. Notebooks carry
+   **no assertions** — this is a design decision recorded in the spec.
+3. Add a row to `docs/labs.md` (create it from the plan's Task 4 if it does not exist yet,
+   and add the nav entry) and a `**Lab**` line to the topic in `docs/learning-path-v2.md`.
+4. Run `python tools/check_labs.py` if it exists; commit the notebook in the stack repo and
+   the site changes in the notes repo.
+
+**Runtime facts** (learned, do not rediscover): the Windows host has no PySpark — run
+notebooks inside the `dagster-user-code` container, which mounts `workspace/` at
+`/workspace`. Prefix docker commands from Git Bash with `MSYS_NO_PATHCONV=1`. The Spark
+Connect service needs `docker compose up -d` from the stack repo root.
+
 ### Step 5 — Confirm to user
 
 ```
