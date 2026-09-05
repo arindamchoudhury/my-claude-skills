@@ -71,8 +71,26 @@ Rules the numbering follows:
 
 ## Chapter invariants (every chapter, no exceptions)
 
-1. **Motivate before mechanism.** Open with the problem the topic solves — ideally a query, a
-   failure or a number the reader can feel. Never open with a definition.
+**These are contracts, not a shape.** Nothing below dictates section order or section titles — see
+"Chapter shapes" for how the arc is chosen. A chapter that satisfies all six and looks unlike every
+other chapter in the book is correct.
+
+1. **Nothing is used before it is explained.** A reader must never meet a term, an object, a command
+   or a mechanism that the chapter leans on before the chapter — or an earlier chapter — has named
+   it. **This is a book, not a notebook.** Whatever a section takes for granted, something before it
+   must have supplied.
+
+   Every chapter states its exit contract up front, as
+   `## What you should be able to do by the end` — 4-6 concrete, checkable abilities derived from
+   the learning-path **Milestone**, written as things the reader *does* ("point at the file on disk
+   holding a table's data, finding the path with a catalog query"), not things they know about.
+   That list is the one fixed opening; everything after it is chosen by topic.
+
+   The failure this rule exists to prevent: a chapter opens by posing a problem, and the problem
+   silently assumes four things the chapter has not introduced, so the reader carries four unnamed
+   objects until section 5 rescues them. Diagnosed on 2026-09-05 in ch02, whose opening posed
+   "which cluster am I talking to?" while deferring cluster, `initdb`, start/stop and connect.
+   The fix was to supply the machinery first — for *that* chapter. It is not a template.
 2. **Both halves.** The vendor-neutral mechanism *and* the PostgreSQL realization. Say explicitly
    where PostgreSQL diverges from the textbook design and why (e.g. no undo pass in recovery,
    because MVCC keeps old versions in the heap).
@@ -87,14 +105,42 @@ Rules the numbering follows:
 
 ---
 
+## Chapter shapes (choose one; do not default)
+
+**The arc is fit to the topic, and the topic decides.** Before writing, ask what actually brings a
+reader to this material and what they already hold. Then pick — or build — the shape that serves
+that. The shapes below are the common answers, not a menu you must pick from.
+
+| Shape | Fits a topic where… | Arc |
+| --- | --- | --- |
+| **Problem-first** | the reader arrives already burned — a slow query, a wrong result, an outage | the failure, felt and reproduced → why it happens → the mechanism → the fix |
+| **Orientation-first** | the reader arrives with nothing built and no grievance | what the thing is, end to end at the keyboard → each part in depth → the failure modes |
+| **Mechanism-first** | the value is the idea itself, and applications follow from it | the model from first principles → what it buys → where PostgreSQL implements it |
+| **Surface-first** | the topic is a body of syntax or an API the reader must become fluent in | the shape of the construct → semantics and edge cases → where it goes wrong |
+| **Decision-first** | the topic is a choice between options with real trade-offs | the decision and what rides on it → the axes → each option against them → how to pick |
+
+Two corollaries:
+
+- **A "The problem" section is one option, never an obligation.** Write it when a reader genuinely
+  arrives with that problem. Retrofitting a grievance onto an orientation topic invents a motivation
+  the reader does not have, and costs a section.
+- **Navigation is separate from motivation.** A long chapter (say 8+ sections) owes the reader a map
+  of which section answers what. That map does not need a problem to hang on — it can be a short
+  lead-in, a table, or the tail of the opening section.
+
+Section titles, numbering depth and whether sections are numbered at all are likewise the chapter's
+own call. What every chapter owes is invariant 1: nothing used before it is explained.
+
+---
+
 ## Toolkit (draw on what the topic needs — NOT a fixed template)
 
-Chapter structure is **fit to the topic**. A theory chapter (I8, A3), a SQL-surface chapter (B4, I1),
-an internals chapter (I5, I15, E3) and an operations chapter (A6, A8, E7) each want a different
-shape. Draw from:
+Having chosen a shape, fill it from these. Nothing here is required and nothing here is ordered — a
+theory chapter (I8, A3), a SQL-surface chapter (B4, I1), an internals chapter (I5, I15, E3) and an
+operations chapter (A6, A8, E7) draw very different subsets:
 
-- Learning outcomes (a short list, when the topic is broad)
-- A motivating problem — a slow query, a corrupted result, an outage
+- A motivating problem — a slow query, a corrupted result, an outage. Optional: use it when the
+  reader really arrives with that problem (see "Chapter shapes"), not as a fixed opening
 - Core-concept prose with the mechanism explained from first principles
 - Worked examples with real `psql` output
 - Mermaid diagrams (page layouts, B+Tree splits, plan trees, replication topologies, state machines)
@@ -179,9 +225,37 @@ Cross-links use wikilink syntax `[[ch<NN>-<slug>]]`; `serve.py` resolves them ag
 
 ---
 
-## Hands-on lab (every chapter from B2 onward)
+## Hands-on: inline first, lab second
 
-Each chapter ends with a lab the reader runs on their own PG 18 cluster:
+**Teach every concept at the keyboard, where it is introduced.** A reader must not have to hold five
+new ideas in their head until an end-of-chapter lab lets them try any of them. The moment a chapter
+explains a mechanism, it shows the command that makes it visible and the output it produces.
+
+So a chapter carries hands-on material in **two distinct places, with different jobs**:
+
+| | Inline hands-on | `## Lab` at the end |
+| --- | --- | --- |
+| **Where** | in the body, immediately after each concept | one section, before the summary |
+| **Job** | *learn* the concept — see it happen once | *strengthen* it — combine, vary, break, diagnose |
+| **Shape** | short: one command, its real output, one sentence on what to notice | multi-step scenario with setup and teardown |
+| **Reader state** | meeting the idea for the first time | has read the whole chapter |
+
+**Inline hands-on rules:**
+
+- Put the command **next to the sentence it proves**, never several pages later.
+- Keep it small — a `psql` snippet with real output, not a scenario. If it needs a schema and three
+  tables, it belongs in the lab.
+- Show the output. A command without its output teaches nothing to a reader who is not typing along.
+- Say what to look at in the output; do not leave the reader to guess which line matters.
+- Prefer something with an immediately visible result over something that requires belief.
+
+**The end-of-chapter `## Lab` then reinforces rather than introduces.** By the time the reader
+reaches it they have already run every individual command inline; the lab's job is to make them
+*use* those commands together on a problem, and it should include at least one step where something
+goes wrong and they diagnose it. A lab that is the reader's first contact with the chapter's
+commands is a defect — move that material inline and rebuild the lab on top of it.
+
+Lab structure stays as before:
 
 - **Setup** — a `docker run` or `psql` block that creates the schema and data from nothing
 - **Steps** — numbered, each with the command and what to observe

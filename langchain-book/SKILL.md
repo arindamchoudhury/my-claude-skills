@@ -58,15 +58,16 @@ One paragraph: what this chapter is about and why the topic matters.
 
 ### Invariants — every chapter, no exceptions
 
-- Opens by establishing why the topic matters — the problem it solves or the capability it unlocks, anchored in a real-world scenario the reader has faced.
+- **Nothing is used before it is explained.** A reader must never meet a term, an object, a command or a mechanism the chapter leans on before the chapter — or an earlier chapter — has named it. **This is a book, not a notebook.** Whatever a section takes for granted, something before it must have supplied. The failure this prevents: an opening poses a problem that silently assumes four things the chapter has not introduced, so the reader carries four unnamed objects until a later section rescues them.
+- **States its exit contract up front** — `## Learning outcomes`, 3–5 concrete, checkable abilities from the topic's learning-path milestone, written as things the reader *builds or does*, not things they know about. That list is the one fixed opening; **the arc after it is chosen by topic — see Chapter shapes.**
 - Teaches toward a concrete capability — when done, the reader can build the thing the chapter is about.
 - All code is current (LangChain 1.x / LangGraph 1.x), complete, and runnable, with `load_dotenv()` shown wherever API keys are used — see Code Standards below.
 - Ends pointing forward — the closing lines connect to the next chapter or the part's mini-project.
 
 ### Toolkit — use the elements the topic needs, in the order that serves it
 
-- **Learning outcomes** up front (3–5 bullets) — valuable for dense topics; skip for short ones
-- **A motivating problem** — what breaks or stays painful without this topic
+- **Learning outcomes** up front (3–5 bullets) — mandatory, per the invariants; never skipped
+- **A motivating problem** — what breaks or stays painful without this topic. Optional: use it when the reader really arrives with that problem (see “Match the shape to the topic”), not as a fixed opening
 - **Concept overview / mental model** prose — explain what happens beneath the code, not what the code already shows; an analogy where it helps
 - **Minimal working example** — the simplest runnable code that demonstrates the concept
 - **Building up** — 2–4 progressively complete examples, each adding ONE new idea
@@ -81,13 +82,20 @@ One paragraph: what this chapter is about and why the topic matters.
 
 ### Match the shape to the topic
 
+**The arc is chosen by the topic, and there is no default.** Ask what actually brings a reader to this material and what they already hold, then build the shape that serves it.
+
+- **A `## The problem this solves` section is one option, never an obligation.** Write it when a reader genuinely arrives with that problem. Retrofitting a grievance onto an orientation topic invents a motivation the reader does not have, and costs a section.
+- **Navigation is separate from motivation.** A long chapter owes the reader a map of which section answers what. That map needs no problem to hang on.
+
+Common arcs:
+
 - **Foundation / setup** (e.g. Ch 1–2) → procedure + first working call; verification; heavy on env/key "what can go wrong"; light on exercises.
 - **API component** (e.g. prompts, parsers, memory) → minimal example → building up → real-world, organised around a reference table of the options.
 - **Concept / architecture** (e.g. what are agents, LangGraph internals) → prose and Mermaid diagrams lead; code is illustrative, not the point.
 - **Pattern** (e.g. RAG, supervisor multi-agent, HITL) → problem → diagram of the flow → progressive build → pitfalls.
 - **Production / ops** (e.g. deployment, eval, observability) → symptom → diagnosis → fix, with LangSmith traces and before/after.
 
-Let the topic pick the structure. A chapter that needs only four of these elements should have only four — don't manufacture a "Pitfalls" or "Exercises" section just to fill a slot.
+Let the topic pick the structure — including whether there is an orientation section, a problem section, both, or neither. A chapter that needs only four of these elements should have only four — don't manufacture a “Pitfalls” or “Exercises” section just to fill a slot. Section titles and ordering are the chapter's own call; what every chapter owes is the invariant above: nothing used before it is explained.
 
 ---
 

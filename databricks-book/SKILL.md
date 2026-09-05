@@ -128,7 +128,8 @@ User says "I finished topic X" or "write the chapter for X" (where X is a topic 
 
 Every chapter must satisfy these — regardless of shape:
 
-1. **Motivate the topic** — open with why this topic matters in production (a concrete failure mode or business impact, not "this topic is important").
+1. **Nothing is used before it is explained.** A reader must never meet a term, an object, a command or a mechanism the chapter leans on before the chapter — or an earlier chapter — has named it. **This is a book, not a notebook.** Whatever a section takes for granted, something before it must have supplied. The failure this prevents: an opening poses a problem that silently assumes four things the chapter has not introduced, so the reader carries four unnamed objects until a later section rescues them.
+   Every chapter states its exit contract up front as `## What you'll learn` — 3–5 concrete, checkable abilities from the topic's milestone, written as things the reader *does*, not things they know about. That list is the one fixed opening; **the arc after it is chosen by topic — see [Chapter shapes](#chapter-shapes--choose-one-do-not-default).**
 2. **Teach toward the milestone** — the chapter's scope exactly matches the learning-path milestone for this topic; don't go wider.
 3. **Current runnable code** — all code examples use DBR 18 / Spark 4.1 imports and APIs. Flag anything that changed from a prior version.
 4. **End pointing forward** — the final paragraph connects this topic to what comes next in the learning path.
@@ -136,12 +137,31 @@ Every chapter must satisfy these — regardless of shape:
 
 ---
 
+## Chapter shapes — choose one, do not default
+
+**The arc is fit to the topic, and the topic decides.** Before writing, ask what actually brings a reader to this material and what they already hold. Then pick — or build — the shape that serves that. These are the common answers, not a menu you must pick from.
+
+| Shape | Fits a topic where… | Arc |
+| --- | --- | --- |
+| **Problem-first** | the reader arrives already burned — something broke, was slow, or gave a wrong answer | the failure, felt and reproduced → why it happens → the mechanism → the fix |
+| **Orientation-first** | the reader arrives with nothing built and no grievance | what the thing is, end to end at the keyboard → each part in depth → the failure modes |
+| **Mechanism-first** | the value is the idea itself, and applications follow from it | the model from first principles → what it buys → where Databricks implements it |
+| **Surface-first** | the topic is a body of syntax or an API the reader must become fluent in | the shape of the construct → semantics and edge cases → where it goes wrong |
+| **Decision-first** | the topic is a choice between options with real trade-offs | the decision and what rides on it → the axes → each option against them → how to pick |
+
+Two corollaries:
+
+- **A "The problem this solves" section is one option, never an obligation.** Write it when a reader genuinely arrives with that problem. Retrofitting a grievance onto an orientation topic invents a motivation the reader does not have, and costs a section.
+- **Navigation is separate from motivation.** A long chapter (8+ sections) owes the reader a map of which section answers what. That map needs no problem to hang on — it can be a short lead-in, a table, or the tail of the opening section.
+
+Section titles, ordering and depth are the chapter's own call. What every chapter owes is the invariant above: nothing used before it is explained.
+
 ## Chapter toolkit
 
-Draw from these elements — not all chapters need all of them. Chapter structure adapts to the topic type.
+Draw from these elements — not all chapters need all of them, and none of them is ordered. Chapter structure adapts to the topic type; see Chapter shapes above.
 
-- **Learning outcomes** — 3–5 bullet "after this chapter you will..." (useful for dense topics)
-- **Motivating problem** — a concrete scenario that creates the need for this topic
+- **Learning outcomes** — 3–5 bullet "after this chapter you will..." — mandatory, per invariant 1
+- **Motivating problem** — a concrete scenario that creates the need for this topic. Optional: use it when the reader really arrives with that problem (see Chapter shapes), not as a fixed opening
 - **Core-concept prose** — explanation-first paragraphs before code
 - **Worked examples** — step-by-step walkthroughs with code and expected output
 - **Mermaid diagrams** — for architecture, flow, or decision trees (use ```` ```mermaid ```` blocks)

@@ -198,7 +198,8 @@ One paragraph: what this chapter is about and why the topic matters.
 
 ### Invariants — every chapter, no exceptions
 
-- Opens by establishing why the topic matters — the problem it solves or the capability it unlocks. The reader knows within the first screen why they're here.
+- **Nothing is used before it is explained.** A reader must never meet a term, an object, a command or a mechanism the chapter leans on before the chapter — or an earlier chapter — has named it. **This is a book, not a notebook.** Whatever a section takes for granted, something before it must have supplied. The failure this prevents: an opening poses a problem that silently assumes four things the chapter has not introduced, so the reader carries four unnamed objects until a later section rescues them.
+- **States its exit contract up front** — `## What you'll learn`, 3–5 concrete, checkable abilities from the topic's learning-path milestone, written as things the reader *does*, not things they know about. That list is the one fixed opening; **the arc after it is chosen by topic — see Chapter shapes.**
 - Teaches toward the learning-path milestone for this topic. When done, the reader can do what the milestone names.
 - All code is current (Spark 4.1.x / Python 3.10+), complete, and runnable — see Code Standards below.
 - Prose is built from short sentences — one idea per sentence, not long clause-stacked ones. Easier to read and to revise.
@@ -213,10 +214,29 @@ One paragraph: what this chapter is about and why the topic matters.
 
   Choose the type by what the reader must do about it: `warning` for something that will bite them, `info` for a naming or behaviour clarification, `note` for additive context. One carve-out: the chapter's metadata header (`> *Learning-path topic: …*`) stays a blockquote, because it is a header block rather than a callout. Admonitions otherwise render anywhere, including directly after a list — an earlier version of this file claimed they did not, which was a misdiagnosis of a missing `admonition` markdown extension in `zensical.toml` (fixed 2026-07-18). If an `!!!` block renders as literal text, check that extension before rewriting content.
 
+### Chapter shapes — choose one, do not default
+
+**The arc is fit to the topic, and the topic decides.** Before writing, ask what actually brings a reader to this material and what they already hold. Then pick — or build — the shape that serves that. These are the common answers, not a menu you must pick from.
+
+| Shape | Fits a topic where… | Arc |
+| --- | --- | --- |
+| **Problem-first** | the reader arrives already burned — something broke, was slow, or gave a wrong answer | the failure, felt and reproduced → why it happens → the mechanism → the fix |
+| **Orientation-first** | the reader arrives with nothing built and no grievance | what the thing is, end to end at the keyboard → each part in depth → the failure modes |
+| **Mechanism-first** | the value is the idea itself, and applications follow from it | the model from first principles → what it buys → where Spark implements it |
+| **Surface-first** | the topic is a body of syntax or an API the reader must become fluent in | the shape of the construct → semantics and edge cases → where it goes wrong |
+| **Decision-first** | the topic is a choice between options with real trade-offs | the decision and what rides on it → the axes → each option against them → how to pick |
+
+Two corollaries:
+
+- **A "The problem this solves" section is one option, never an obligation.** Write it when a reader genuinely arrives with that problem. Retrofitting a grievance onto an orientation topic invents a motivation the reader does not have, and costs a section.
+- **Navigation is separate from motivation.** A long chapter (8+ sections) owes the reader a map of which section answers what. That map needs no problem to hang on — it can be a short lead-in, a table, or the tail of the opening section.
+
+Section titles, ordering and depth are the chapter's own call. What every chapter owes is the invariant above: nothing used before it is explained.
+
 ### Toolkit — use the elements the topic needs, in the order that serves it
 
-- **Learning outcomes** up front (3–5 bullets) — valuable for dense topics; skip for short ones
-- **A motivating problem** — a concrete scenario that breaks or becomes painful without this topic
+- **Learning outcomes** up front (3–5 bullets) — mandatory, per the invariants; never skipped
+- **A motivating problem** — a concrete scenario that breaks or becomes painful without this topic. Optional: use it when the reader really arrives with that problem (see Chapter shapes), not as a fixed opening
 - **Core concept / mental model** prose — the WHY behind the mechanism, not just the WHAT; an analogy or comparison table where it helps
 - **Worked examples**, minimal → complete, one new idea each
 - **Mermaid diagrams** where a picture beats prose — architecture, data flow, partitioning, shuffle

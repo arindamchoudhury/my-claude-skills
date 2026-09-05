@@ -34,6 +34,10 @@ Launch an Explore agent to read the chapter in full and the book index
 - The task: identify missing concepts with (a) what is missing, (b) why it belongs
   here vs a later specialist chapter, (c) which later chapter would own the deep dive
 
+**A dependency the chapter never supplies is a gap like any other.** A chapter must never use a term, object, command or mechanism it leans on before it — or an earlier chapter — has named it. A chapter whose opening poses a problem built out of machinery it has not explained, and that no earlier chapter established, has a **structural gap**: flag it, and fix it by supplying the machinery ahead of where it is used.
+
+Fix it in whatever way suits *that* topic — an orientation section, a definition in place, a paragraph, a forward pointer that actually resolves. **Do not flag a chapter merely for lacking an orientation section or a problem section.** There is no required opening arc beyond the outcomes list; the shape is the chapter's own, chosen by topic. This is a book, not a notebook: what a section takes for granted, something before it must have supplied.
+
 ---
 
 ## Step 2 — Classify Gaps
@@ -151,6 +155,9 @@ Zero results expected.
 Check every new `!!! note` admonition has content indented with 4 spaces.
 
 Check every new bullet list has a blank line before it.
+
+Check that anything the chapter now assumes is explained before it is used, not after — including
+anything the new content itself introduced.
 
 ---
 
