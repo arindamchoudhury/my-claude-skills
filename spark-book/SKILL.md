@@ -84,14 +84,14 @@ Also check:
 - `docs/research-cache/spark-source-internals-v412.md` — source-verified execution internals (QueryExecution, WholeStageCodegenExec, FileScanRDD, UnsafeRow, stage types)
 - The relevant official docs page (see Code Standards below for URLs)
 
-**Verifying against Spark v4.1.2 source:** Use the local checkout at `C:\opt\learn\spark\spark`. Read or grep files directly — do not rely on web search for source-level facts. Examples:
+**Verifying against Spark v4.1.2 source:** Use the local checkout at `C:\opt\learn\spark\repos\spark`. Read or grep files directly — do not rely on web search for source-level facts. Examples:
 
 ```powershell
 # Find a config default
-grep -r "maxFailures" "C:\opt\learn\spark\spark\core\src\main\scala\org\apache\spark\internal\config"
+grep -r "maxFailures" "C:\opt\learn\spark\repos\spark\core\src\main\scala\org\apache\spark\internal\config"
 
 # Read a specific class
-cat "C:\opt\learn\spark\spark\sql\core\src\main\scala\org\apache\spark\sql\execution\QueryExecution.scala"
+cat "C:\opt\learn\spark\repos\spark\sql\core\src\main\scala\org\apache\spark\sql\execution\QueryExecution.scala"
 ```
 
 Save any new verified facts to the appropriate cache file above.
