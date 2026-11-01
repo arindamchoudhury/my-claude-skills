@@ -217,6 +217,19 @@ PDF-to-print offset: +33  (PDF page 34 = printed page 1)
 
 In subsequent sessions: read `page-map.md`, look up the chapter's PDF start/end, extract with `pdftotext -f <start> -l <end> -layout "<book>.pdf" -`.
 
+### Section numbers live in the margin — do not read them as headings
+
+Many technical publishers (Manning among them) print section numbers in a **margin column**, not inline with the heading text. `pdftotext -layout` flattens that column into the text flow, so a section number lands one or more lines away from the heading it labels — often attached to the *previous* section's closing paragraph:
+
+```text
+7.2.4  If that looks complicated, don't worry: it's the kind of boilerplate…   ← 7.2.3's last paragraph
+       Terraform and OpenTofu                                                  ← the actual 7.2.4 heading
+```
+
+Reading top-down, `7.2.4` looks like it labels the paragraph. It does not. This is the single largest source of **off-by-one citations** — an audit of one project's learning path found 10 of 20 chapter citations wrong from exactly this.
+
+**How to map them reliably:** list every section-number line, then for each one read *forward* to the next short unnumbered line — that line is the heading. Confirm the mapping against the book's own cross-references, which are free ground truth: when §7.3.1 says "the variable we created in section 7.2.4", that pins 7.2.4. Do this once per chapter before writing any `§` citation.
+
 ### Chapter text cache — extract once, read many times
 
 Once a chapter's text is extracted, save it so it never needs re-extracting in a future session.
@@ -284,9 +297,42 @@ The behavior:
 
    This is honest about the gap between the book and the notes, and gives a future-you reader a fighting chance of reconciling examples that don't quite match the book.
 
-5. **Don't invent features.** If a search doesn't surface a clear answer for a specific feature, leave the book's content as-is and add a `> ❓ Revisit:` note. Hallucinating "what's new" content is worse than being honest about uncertainty.
+5. **Don't invent features.** If a search doesn't surface a clear answer for a specific feature, leave the book's content as-is and add a `!!! question "❓ Revisit"` admonition. Hallucinating "what's new" content is worse than being honest about uncertainty.
 
 The full decision rules and a worked example (PostgreSQL 16 → 18 adaptation) live in `references/version-handling.md`.
+
+## The system under study is not the boundary of the syllabus
+
+Most projects using this skill pair vendor-neutral theory with one concrete system — a book on database systems read alongside PostgreSQL, a book on distributed systems read alongside Kubernetes. It is tempting to treat the concrete system as the edge of what is worth learning: if it cannot do the thing, drop the topic.
+
+**Do the opposite.** Where the system under study has a structural ceiling, that is exactly where the alternative deserves a note. Two reasons:
+
+- **A ceiling you cannot describe is one you cannot argue about.** "Use a column store for that" is not a judgement; it is a slogan. Knowing *what* the row-at-a-time execution model costs and *what* a vectorized engine does instead is what turns it into an engineering position — and the same knowledge is what lets you refuse the migration when the numbers do not justify it.
+- **The ceiling explains the design.** Systems make coherent trade-offs. Reading the alternative design usually explains why the system under study made the choice it did, which makes the primary material land harder, not softer.
+
+The behavior:
+
+1. **Notice the ceiling when you write the chapter.** Every "X does not support…", "for this you would use…", "in practice people reach for…" is a ceiling. Do not let it pass as a throwaway clause.
+
+2. **Name the alternative and the mechanism** — not just the product. "Use ClickHouse" is a vendor name; "column-at-a-time execution over cache-resident batches" is a mechanism you can reason about. The product is the example; the mechanism is the content.
+
+3. **Follow the book's own pointers outward.** A good textbook flags its own boundaries in Further Reading. Those citations are the shortest path to the alternative's primary source, and they cost nothing to check.
+
+4. **Say how to actually use it.** Naming a mechanism is half the job; a reader who cannot act on it has learned a slogan with better vocabulary. Give the practical path in three parts:
+   - **The in-system option first.** Most ecosystems have an extension or plugin that buys some of the alternative's benefit without leaving the primary system. It is almost always the right first move, and its *limitations* teach the trade-off better than prose does.
+   - **The crossing, with its bill.** Name what adopting the separate system actually costs — the incompatibilities, the operational burden, the second thing to keep in sync. A migration path with no downside listed is marketing.
+   - **The line.** The specific observation that should trigger the move. "When X is your complaint, the in-system option fixes it; when Y happens, that is the signal to cross over."
+
+5. **Verify versions and support before writing install steps.** Extensions move faster than notes do. Check the upstream release for current-version support, and date-stamp the claim. Writing `apt install …` for a version combination that does not exist is worse than writing nothing.
+
+6. **Distrust the vendor's benchmark.** Projects benchmark against whatever flatters them, which is frequently *not* the thing your reader would be migrating from. Say what the published comparison actually measured, and name the comparison the reader has to run themselves.
+
+7. **Record it once, centrally.** A "where <system> stops" table in the research cache — ceiling, alternative design, paper, which topic it belongs to — beats scattering the same observation across chapters. Link stage/topic pages to it.
+
+8. **Say when there is nothing worth reading — or nothing to switch to.** Some ceilings are answered by a deployment story rather than a research contribution, and some by research nothing in production depends on yet. Some have no alternative at all, because the trade-off is baked into the primary system's core. All are legitimate outcomes; write the row and say so, rather than leaving a silent gap that looks like an oversight. "There is no alternative, so measure before you blame the engine" is a useful conclusion.
+
+!!! warning "This is not permission to sprawl"
+    The alternative gets a paragraph and a pointer, not a chapter. The project is still about the system under study. The test is whether the note changes how the reader would *decide* — if it would not, it is trivia.
 
 ## Keeping the site in sync
 
@@ -359,20 +405,66 @@ When the user asks a factual question — about Spark internals, API behaviour, 
 
 2. **Verify URLs before citing them.** Never include a URL in a response or in the notes unless you have confirmed it resolves. Use `WebFetch` on any URL you intend to cite, or confirm it appeared live in a search result. A broken source is worse than no source — it erodes trust and wastes the reader's time.
 
-3. **Trace claims to sources.** Every claim that goes into the notes should be traceable to a specific source (official docs, release notes, a verified article). If you can't find a source, say so explicitly and mark the content with `> ❓ Unverified:` rather than asserting it as fact.
+3. **Trace claims to sources.** Every claim that goes into the notes should be traceable to a specific source (official docs, release notes, a verified article). If you can't find a source, say so explicitly and mark the content with a `!!! question "❓ Unverified"` admonition rather than asserting it as fact.
 
 4. **Distinguish confidence levels explicitly:**
    - Verified from a source retrieved this session → state the source.
    - Recalled from training but not verified this session → say so: *"From training data, not verified this session — treat with caution."*
-   - Uncertain → add `> ❓ Revisit:` in the notes and do not present it as settled.
+   - Uncertain → add a `!!! question "❓ Revisit"` admonition in the notes and do not present it as settled.
 
 5. **Include sources in answers.** When answering a question in chat, list the URLs you consulted at the end of your response so the user can check them.
+
+### When a source is unreachable — ask the user for the PDF
+
+Academic publishers block automated fetching. ACM Digital Library, IEEE Xplore, Springer, Elsevier and ResearchGate routinely return **HTTP 403** to `WebFetch` and `curl`. A 403 means *"this host refuses bots"*, **not** *"this citation is wrong"* — do not treat it as evidence either way.
+
+**First, try the free copy.** Many papers are legitimately available outside the publisher: arXiv, the author's own institutional page, a lab or group page, or a conference's open proceedings. One targeted `WebSearch` usually settles it. Verify any such URL actually resolves before citing it — an author page that 403s is no better than the publisher.
+
+**Verify the citation even without the text.** `dblp.org` is fetchable and authoritative for bibliographic metadata. Fetching `https://dblp.org/rec/<key>.html` returns the DOI, exact title, venue, volume/issue, year and page range. Use it to confirm a DOI you would otherwise be asserting from memory, and to catch errors in the book's own bibliography — published bibliographies contain wrong titles and page ranges more often than you would expect, and silently copying them propagates the error.
+
+**What you may write without having read the paper:**
+
+- The bibliographic facts, once confirmed against dblp or an equivalent.
+- What *the book* says about the paper, attributed to the book.
+
+**What you may not write:**
+
+- Any claim about the paper's contents, argument or results beyond what your actual source says.
+- A publisher URL you could not confirm resolves. Cite the DOI (which you verified) and note the paywall rather than linking a page you never reached.
+
+**Then ask the user.** If a paper would materially improve the notes — not merely decorate them — say so and request it. The user can usually obtain papers through institutional access that automated fetching cannot reach.
+
+Make the request easy to act on:
+
+- **Identify the paper unambiguously**: authors, year, exact title, venue, and DOI.
+- **Say what it would change.** "This would let me state precisely where PostgreSQL's implementation follows the paper and where it diverges" is actionable; "it would be good background" is not.
+- **Prioritise, and batch.** Ask for a small ranked set covering several upcoming chapters, not one paper at a time and not twenty at once. Rank by how much each would change what you can write.
+- **Say explicitly what you do *not* need**, so the user doesn't waste effort on sources you can already reach.
+- **Say where to put it and what happens next**: a `papers/` directory alongside `books/`, extracted with `pdftotext` like any other PDF, with durable facts cached into `docs/research-cache/`.
+
+**The highest-value papers are the ones the system under study actually implements.** A paper whose algorithm ships in the database you are taking notes on lets you connect a vendor-neutral textbook treatment to real behaviour with authority. A paper that is merely historically interesting can stay a citation.
+
+**Do not block on it.** Ask, then continue with what you can verify. Mark anything that depends on the missing paper with a `!!! question "❓ Unverified"` admonition and move on — the request is an improvement to future chapters, not a prerequisite for the current one.
 
 **Common hallucination traps in this domain:**
 - Version numbers for when a feature was added/changed.
 - Whether a URL or documentation page exists.
 - Specific method signatures, config key names, or default values.
 - Claims about what a third-party tool (Velox, Photon, Gluten) does or which product ships it.
+- **Causal explanations.** "Tool X lags on Y because it depends on Z" is the shape that slips through hardest, because the *observable* half is verifiable and the *causal* half is not — so the sentence feels sourced. A search snippet claimed terraform-docs cannot support OpenTofu because it parses with HashiCorp's `terraform-config-inspect`; its `go.mod` requires the project's **own fork** of that library, so the explanation was false while every fact around it was true. Rule: **state what is observable — issue open, PR unmerged, dependency pinned at this version — and stop.** If no maintainer has stated the cause, there is no cause to write, and do not substitute a second guess to fill the gap.
+
+**Verify the claim, not something adjacent to it.** "The file exists at that tag" does not establish "the command shipped in that release" — check the command registration and the changelog entry. Before calling a claim verified, ask what would have to be true for it to be *false*, then go look for exactly that.
+
+**Check a rule's scope before generalising it.** A rule that holds on one surface often does not hold on another, and the mistake is invisible because the output looks identical either way. GitHub autolinks a bare `#123` in commit messages but explicitly *not* in repository files — its docs say "Autolinked references are not created in wikis or files in a repository" — so applying the commit-message rule to Markdown produced a confident, wrong explanation attached to an otherwise fine fix.
+
+## Citing issues and PRs
+
+Notes that mine upstream repositories accumulate issue and PR numbers fast. Two rules:
+
+- **In Markdown, always write a real link** — `[#1738](https://github.com/opentofu/opentofu/pull/1738)`, not a bare `#1738`. GitHub will not autolink it inside a repository file and static-site generators render it as plain text, so a bare number is a citation the reader cannot follow or check.
+- **In commit messages, use the `owner/repo#123` form.** Here GitHub *does* autolink, and it resolves against the repository being viewed — so a bare `#845` in a commit on your notes repo becomes a link into your own empty issue tracker.
+
+**Confirm which repository owns the number before linking it.** A squashed merge commit carries its PR number as a `(#NNNN)` suffix, so a local checkout settles it: `git log -1 --format=%s <sha>`. Guessing the owner replaces an unfollowable number with a link to the wrong project, which is worse.
 
 ## Anti-patterns to avoid
 
@@ -386,6 +478,10 @@ When the user asks a factual question — about Spark internals, API behaviour, 
 - **Don't pin versions unless asked.** A user studying technology generally wants notes against *current*, not whatever happened to be latest the day they ran the skill — but that's a soft preference. If they ask for "as of when the book was written," respect it.
 - **Don't pretend to know latest versions from training.** Always web-search when version-currency matters.
 - **Don't write topic pages with only one source.** Keep them in the backlog until a second book provides the comparison point — otherwise the topic page is just a chapter summary in disguise.
+- **Don't describe a paper you haven't read.** A 403 from ACM or IEEE verifies nothing. Confirm the citation against dblp, attribute any characterisation to the book, and ask the user for the PDF if the contents actually matter.
+- **Don't treat the system under study as the edge of the syllabus.** "PostgreSQL doesn't ship it" is a reason to name the alternative and its mechanism, not a reason to drop the topic. See *The system under study is not the boundary of the syllabus*.
+- **Don't answer a ceiling with a product name.** "Use DuckDB" teaches nothing. The mechanism — what the alternative does differently — is the note; the product is just where to see it.
+- **Don't cite a URL you could not reach.** Prefer the verified DOI and note the paywall over linking a page you never loaded.
 - **Don't forget the cross-links.** Topic pages without back-links to source chapters are orphaned; chapter notes without forward-links to topic pages are siloed. Bidirectional links are what make the hybrid useful.
 
 ## Reference files

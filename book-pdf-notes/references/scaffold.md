@@ -140,7 +140,8 @@ The "single-source backlog" is updated after every chapter. When a second book c
 
 - **Concepts** are introduced as short, declarative bullets.
 - **Commands / syntax** appear in fenced code blocks.
-- **Open questions** are marked with `> ❓`.
+- **Open questions** are `!!! question "❓ Revisit"` admonitions.
+- **My own observations** (not the source's) are `!!! quote "💭 Mine"` admonitions.
 - **Version-adapted content** is flagged with a 📌 callout at the top of each chapter.
 ```
 

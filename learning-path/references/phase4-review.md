@@ -60,11 +60,43 @@ Apply only the mismatches. When a course is retired, find its official replaceme
 everywhere it's cited (Resources table *and* the topic entry that uses it). When a version advances,
 update the header and re-check that the breaking-change callouts still describe the *current* release.
 
+!!! warning "Grep for the dead URL before you call it replaced"
+    Fixing a retired resource in the Resources table and stopping there is the standard failure —
+    the same URL is usually cited again inside two or three topics, and those copies are what a
+    learner actually clicks. Verified 2026-08-15 on the Terraform path: a retired course URL was
+    corrected in the table while two in-topic citations kept pointing at it, and only a follow-up
+    review caught them. After any link swap, `grep` the **old** URL across the whole path and
+    confirm zero hits.
+
+!!! danger "Do not restate a number the vendor does not publish"
+    A path claimed an exam was "~57 multiple-choice". The official exam-details table gives
+    assessment type, format, duration, price, language and expiry — **no question count**. The 57
+    turned out to be the size of a third-party practice exam that circulates widely enough to be
+    mistaken for the real thing. When a volatile fact cannot be found on the official page, the
+    correct edit is to **remove it and say the vendor does not publish it**, not to leave it with a
+    softer hedge. Check the provenance of any oddly specific number the path asserts.
+
 If a source has genuinely been superseded by a newer one (a course replaced, a protocol renamed),
 follow the same honesty rules as Phase 3 blending: name the change, keep the point-in-time term only
 where a dated release note requires it, and use the current name everywhere else.
 
 ---
+
+## Step 2b — Check the path's own internals, not just the vendor facts
+
+Volatile-fact drift is only half of what rots. The other half never touches a vendor page:
+
+- **Book citations that name no real chapter.** "TID Ch on HCP" survived months in the Terraform
+  path; the book has no HCP chapter, and its HCP coverage is a *section* of the continuous-delivery
+  chapter. Hold the book's TOC as ground truth — extract it from the PDF if there is no cached copy —
+  and make every citation name a chapter number, ideally a §section.
+- **Captured notes reachable from nowhere.** Diff the set of note slugs against the slugs the path
+  links. Anything captured but never cited is either a wiring gap (fix it) or a stub that was never
+  read (leave it, and say so, or the next review re-investigates the same list).
+- **Broken links in the built site.** See the research-notes skill: a clean build passing is not
+  evidence that `[[wikilink]]` references resolve.
+- **Status markers that overstate progress.** Level checkpoints marked done while every topic under
+  them is unstarted read as "level complete" at a glance.
 
 ## Step 3 — Sync topic status with reality
 

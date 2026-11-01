@@ -140,7 +140,7 @@ Related: [[other-slug]] — one-line note on the relationship.
 - **Short sentences over overloaded ones.** Prefer several short declarative sentences to one long clause-stacked one. One fact per sentence — easier to skim and revise later.
 - Paraphrase ideas in your own words. Short quotes only where the exact wording matters.
 - No wall-of-text dumps from the source. The notes should be 20–40% the length of the source.
-- Mark uncertain claims with `> ❓ Unverified:` rather than stating them as fact.
+- Mark uncertain claims with a `!!! question "❓ Unverified"` admonition rather than stating them as fact.
 - For technical content: **always copy code examples and workflow steps in full — never truncate or paraphrase them.** The exact code is the point; summaries lose precision. Strip surrounding boilerplate (imports already shown, repeated scaffolding) but keep every meaningful line.
 
 **Markdown formatting rules — lists must always be preceded by a blank line:**
@@ -342,7 +342,7 @@ Before answering any factual question about source content:
 3. **Web search to verify** only if no cache entry exists or the entry is stale (>30 days, version-specific).
 4. **Save new findings** to `cache/search/<slug>.md` after any search that yields reusable facts.
 5. **Cite sources** — include the URL at the end of any answer that references specific claims.
-6. **Mark uncertainty** — use `> ❓ Unverified:` in notes; use "not verified this session" in chat answers.
+6. **Mark uncertainty** — use a `!!! question "❓ Unverified"` admonition in notes; use "not verified this session" in chat answers.
 
 ## Version-aware notes
 
@@ -454,7 +454,20 @@ When the script finds nothing, that is a real answer: **the source has no naviga
 - **The "stays flat" exception is only for levels *you* would invent, never for a level the source names.** If the source sidebar does not have a group there and you'd be adding a pure-taxonomy wrapper of your own, then a single child with no captured overview page stays flat — don't bury one note under an invented header. But if the source names the group, the rule above wins: reproduce it.
 - **Label leaf entries with the source's own label**, not a re-invented name.
 - **Record the rung** you used in the course's `docs/sources/<course-slug>/index.md`, so a later session regroups from the same signal instead of re-deriving (or silently picking a weaker one).
-- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, confirm every note file appears exactly **once** in nav, then **actually build the site** (`python -c "from zensical import build; build('zensical.toml', clean=False)"`) — a valid TOML nav can still fail to render.
+- **Validate after editing:** `python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('TOML OK')"`, confirm every note file appears exactly **once** in nav, then **actually build the site** (`python -c "from zensical import build; build('zensical.toml', clean=False)"`) — a valid TOML nav can still fail to render. Then check links (below) — a clean build is **not** evidence that `[[wikilinks]]` resolve.
+
+### A green build does not mean the links work
+
+Zensical's `page does not exist` warning covers **markdown links** (`[text](../other.md)`) and never the hrefs the **wikilinks extension injects**. A mistyped `[[slug]]` silently falls back to `<base_url>/<slug>/` and ships as a 404 no build ever reports. Verified 2026-08-15 on the terraform notes: three dead wikilinks sat in book chapters through many clean builds, including one pointing at a topic page that was only ever a backlog entry.
+
+Two consequences:
+
+- **Wikilinks resolve only where the resolver is installed.** It cannot live in `zensical.toml` — Zensical pickles `mdx_configs` to hash them and a function is not picklable — so it is Python that patches `markdown.extensions.wikilinks`. A plain `zensical build`, including the one in a GitHub Pages workflow, renders `[[slug]]` as **literal text**. Check what the deploy workflow runs before assuming the published site looks like the local one; in the terraform notes both paths now go through `scripts/build_site.py`, which shares `scripts/wikilinks.py` with `serve.py`.
+- **Render an unresolvable slug as plain text, not an anchor.** The stock extension always emits `<a>`, so a typo becomes a silent 404. Patch `WikiLinksInlineProcessor.handleMatch` to emit a `<span>` carrying the label when the slug matches no page, collect those slugs, and fail the build on them — that turns the whole class of error into a build failure instead of something only a link checker finds.
+- **Do not assume a trimmed nav means fewer published pages.** Verified 2026-08-15: building the terraform notes with the nav trimmed to two sections emitted the **same 183 pages** as the full nav. Nav controls the sidebar, not the page set. Diff two builds before reasoning about what the deploy drops.
+- **Run a real link check** over the built site: resolve every internal href against the directory of the page carrying it, and strip the deploy base path taken from `site_url` first (root-relative hrefs in `404.html` all carry it, and without stripping, that one page reports every link as broken). `scripts/check_links.py` in the terraform notes does this and exits non-zero on any miss — copy it into other note projects rather than re-deriving it.
+
+If a CI job genuinely does drop pages, the check will report links to them as broken — confirm what the deploy actually emits before wiring it in.
 
 This mirroring rule replaces the flat sequence-numbered list **for documentation-site courses only**. Article, blog, and paper courses have no upstream navigation to mirror, so they keep the numbered-Notes convention above.
 

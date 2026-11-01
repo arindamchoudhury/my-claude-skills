@@ -83,9 +83,10 @@ One chapter per topic, numbered sequentially across all four levels. File name: 
    Every chapter states its exit contract up front as `## Learning outcomes` — 3–5 concrete, checkable abilities from the topic's milestone, written as things the reader *does*, not things they know about. That list is the one fixed opening; **the arc after it is chosen by topic — see [Chapter shapes](#chapter-shapes--choose-one-do-not-default).**
 2. **Teach toward the learning-path milestone** — the chapter must make the topic's `Milestone` achievable.
 3. **Current, runnable HCL** — code targets Terraform **1.15** / OpenTofu **1.12**; every block should actually apply.
-4. **End pointing forward** — close with what this unlocks and which chapter comes next.
+4. **End pointing forward** — close with what this unlocks and which chapter comes next, as `**Next: Chapter N — Title.**`.
 5. **Callouts are admonitions, never blockquotes** — see [Callout formatting](#callout-formatting-mandatory). A `>` blockquote for any note/definition/tip/warning/aside is a defect to fix on sight.
 6. **Ship a 🧪 Lab (every chapter B2 onward)** — a hands-on section the reader can actually run, for free, against a local AWS emulator. See [Hands-on lab](#hands-on-lab-every-chapter-from-b2). Ch1 holds the one-time setup; every later chapter has a `## 🧪 Lab`.
+7. **Never show a topic code (B4, I6, A3, …) in a chapter** — prose, tables, admonitions, Next lines, references. Codes are learning-path bookkeeping; a book reader navigates by chapter number. Write **"Chapter N"** using the arc table above (a "Covered in" cell listing two becomes `Chapters 13, 14`; a range becomes `Chapters 1–17`). The book's style is plain, unlinked "Chapter N" — link only when pointing at a section anchor (`[Chapter 1's lab setup](ch01-iac-fundamentals.md#lab-setup-a-free-local-aws-docker)`). Watch the article: "an A6 topic" becomes "a Chapter 23 topic". Not codes, and fine: Mermaid node ids (`A1["…"]`), hex bytes (`E9`), and other books' chapters ("TID's Chapter 5"). `docs/book/index.md` keeps its code column.
 
 ## Chapter shapes — choose one, do not default
 

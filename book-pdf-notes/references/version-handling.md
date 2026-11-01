@@ -35,7 +35,7 @@ Use `WebSearch` (or `web_fetch`) to find the **current stable release**.
 - Read the *release notes* for the major version, not just a press release — release notes have the level of detail a study note needs.
 - One search per technology in the chapter is usually enough. Don't go down a rabbit hole.
 
-If the search is inconclusive, **stop**. Don't guess. Mark the gap with `> ❓ Revisit:` and move on.
+If the search is inconclusive, **stop**. Don't guess. Mark the gap with a `!!! question "❓ Revisit"` admonition and move on.
 
 ### 3. Adapt — surgically
 
@@ -89,7 +89,7 @@ The book is *Learn PostgreSQL 2nd Ed.* by Ferrari & Pirozzi (Packt, 2023), which
 
 ### What got an honest "I don't know"
 
-A book example demonstrating syntax that *might* be subtly different in v18 but where the official release notes don't clearly confirm: leave the book's example in place, add `> ❓ Revisit: confirm this still works on v18 — book uses the v16 spelling.`
+A book example demonstrating syntax that *might* be subtly different in v18 but where the official release notes don't clearly confirm: leave the book's example in place, add a `!!! question "❓ Revisit"` admonition: confirm this still works on v18 — book uses the v16 spelling.
 
 ## Anti-patterns
 
@@ -100,6 +100,6 @@ A book example demonstrating syntax that *might* be subtly different in v18 but 
 
 ## When the user asks "do this against the book's version, not latest"
 
-Some users are studying for a specific exam or working on a system that's pinned to a particular version. Respect the request — skip the version search entirely and write the notes faithfully to the book. You can still flag where v<latest> behaves differently in a `> 📌` callout if you happen to know it, but don't *adapt* the content.
+Some users are studying for a specific exam or working on a system that's pinned to a particular version. Respect the request — skip the version search entirely and write the notes faithfully to the book. You can still flag where v<latest> behaves differently in a 📌 admonition if you happen to know it, but don't *adapt* the content.
 
 The default, absent a request, is "current at note-taking time."

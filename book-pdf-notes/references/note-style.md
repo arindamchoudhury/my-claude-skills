@@ -48,7 +48,7 @@ Inside each section, the rhythm is:
 - **Concept** — a short declarative bullet or sub-heading (`### …`).
 - **Explanation** — 1–3 short sentences in your own words, in prose-y bullets or a paragraph.
 - **Specifics** — commands, syntax, exact terms; render in code blocks if textual, in a small table if comparative.
-- **Pointer** — a `> ❓ Revisit:` note when something is unclear or worth experimenting with later.
+- **Pointer** — a `!!! question "❓ Revisit"` admonition when something is unclear or worth experimenting with later.
 
 Avoid marathon bullets. If a thought is more than ~2 sentences, break it into sub-bullets or a short paragraph. Avoid bullet-of-bullets-of-bullets nesting deeper than three levels — at that point you're hiding structure rather than revealing it.
 
@@ -125,14 +125,32 @@ Common types: `note`, `tip`, `warning`, `danger`, `info`, `example`, `quote`. Pi
 grep -rnE '^\s*(!!!|\?\?\?|===)\s+.*\\"' docs --include='*.md'
 ```
 
-A plain emoji-blockquote is acceptable **only** for a single-line aside that stands alone (not adjacent to a list, no table/code inside):
+**Every callout in a note body is an admonition — never a `>` blockquote, however short.** There is no
+size threshold: a one-line aside is an admonition too. Emoji are kept, but they move into the *title*,
+where they still work as the scan cue:
 
-- `> 💡 **Tip** — one sentence.`
-- `> ⚠️ **Pitfall** — one sentence.`
-- `> 📌 **Version note** — one sentence.`
-- `> ❓ Revisit: ...` for open questions you want to chase later.
+| Intent | Write | Not |
+|---|---|---|
+| shortcut, shorthand | `!!! tip` | `> 💡 …` |
+| pitfall, footgun | `!!! warning` / `!!! danger` | `> ⚠️ …` |
+| version note | `!!! info "📌 Version note"` | `> 📌 …` |
+| open question | `!!! question "❓ Revisit"` | `> ❓ Revisit: …` |
+| your own observation | `!!! quote "💭 Mine"` | `> 💭 (mine): …` |
+| project-specific marker | put it in the title, e.g. `!!! note "🐘 PostgreSQL"` | a bare `> 🐘 …` line |
 
-The moment a callout needs a table, a code block, more than ~2 sentences, or sits next to a bullet/numbered list, use an admonition instead — a blockquote in those cases either can't hold the content or silently corrupts the surrounding list.
+Where a marker carries a *name* (Mine, Revisit, PostgreSQL), keep its emoji in the title. Where it only
+signalled severity (⚠️, 💡), drop it — the admonition type already carries that signal in its own icon.
+
+`>` blockquotes are reserved for exactly two things: the chapter-header front-matter block (source
+citation + summary + see-also), and genuine verbatim quotations — including one nested *inside* an
+admonition, indented under it. A `>` used as a callout anywhere in the body is a defect to convert on sight.
+
+The reasons are not only consistency: a blockquote cannot box a table, silently corrupts an adjacent
+list, and gives the reader no type signal at all — a warning and a passing aside render identically.
+
+When converting an existing `> MARKER: text` callout, the marker becomes the title and the body loses it,
+so **capitalize the body's first letter** — it now starts a sentence instead of continuing one. Skip that
+for lowercase technical identifiers (`pgvector`, `jsonb`).
 
 > ⚠️ **CommonMark trap — never indent a callout *into* a list item.** A blockquote or admonition indented under a `-`/`1.` list item gets parsed as part of that item and swallows the rest of the list (following bullets collapse into one run-on line). Two safe placements: (a) put the callout **after the whole list ends** (unindented, blank line before), or (b) to place it mid-list, put it **unindented between two bullets** — for an *unordered* list this cleanly splits it into two bullet groups with the box between; avoid this split inside an *ordered* list, since the numbering restarts. Always rebuild and confirm the following list items still render as their own bullets.
 
@@ -142,7 +160,7 @@ Write in your voice, in your language. The notes are for *you*, six months from 
 
 - Prefer "the postmaster forks a backend per connection" over "PostgreSQL utilizes a multi-process architecture wherein the postmaster process spawns dedicated backend processes for each incoming client connection."
 - **Short sentences over overloaded ones.** Prefer several short declarative sentences to one long sentence packed with clauses. One fact per sentence. Easier to skim and to revise later.
-- It's fine to add your own observations and aha-moments; mark them clearly so they don't get confused with the source: `> 💭 (mine):` or just inline italics.
+- It's fine to add your own observations and aha-moments; mark them clearly so they don't get confused with the source: a `!!! quote "💭 Mine"` admonition, or inline italics for a half-sentence.
 - Don't mimic the book's marketing language ("rock-solid", "world-class") unless that's a quote that you're keeping for color.
 
 ## Copyright & quoting
@@ -200,7 +218,8 @@ The point: capacity is rarely the bottleneck — *organization and tuning* are.
 | Isolation | Concurrent ops don't corrupt each other. |
 | Durability | Committed data survives crashes. |
 
-> ❓ Revisit: which extensions are most worth installing on a fresh dev cluster?
+!!! question "❓ Revisit"
+    Which extensions are most worth installing on a fresh dev cluster?
 
 ---
 
@@ -225,5 +244,5 @@ Notice:
 - Sections numbered to mirror the chapter's own structure.
 - Short prose-y bullets, not flat summaries.
 - A small comparison table for ACID instead of a paragraph.
-- A `> ❓ Revisit:` to capture a thought without breaking the flow.
+- A `!!! question "❓ Revisit"` to capture a thought without breaking the flow.
 - The summary is genuinely short — the user will skim it; bury detail in the body.
