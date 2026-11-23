@@ -12,12 +12,12 @@ description: >
   PagedAttention for the book", "add a chapter on KernelBench").
 ---
 
-# ML Systems Book — Chapter Writing
+# ML Systems Book: Chapter Writing
 
 Synthesised chapters, one per learning-path topic, at `C:\opt\learn\machinelearning\notes\docs\book\`.
-A chapter blends **every source the user has worked through** on that topic — TinyTorch module notes
+A chapter blends **every source the user has worked through** on that topic: TinyTorch module notes
 and their own implementation, MLSysBook chapters, CS249r papers and blog posts, course lectures, and
-current docs — into one explained treatment aligned to the learning-path milestone.
+current docs: into one explained treatment aligned to the learning-path milestone.
 
 This skill is invoked by **Phase 3** of the `learning-path` skill. Read
 `learning-path/references/phase3-book.md` for the full workflow (gather notes → web-search current
@@ -50,11 +50,11 @@ E1–E17 → 26–42. Level map, for orientation only (the index is authoritativ
 
 | Level | Codes | Spine |
 |---|---|---|
-| Beginner — Foundation | B1–B9 | D·A·M / Iron Law, then TinyTorch 01–08 (tensor → training) |
-| Intermediate — Architecture | I1–I6 | TinyTorch 09–13 (conv, tokenization, embeddings, attention, transformer) + framework internals |
-| Advanced — Optimization | A1–A10 | TinyTorch 14–20 (profiling → capstone) + V1 data selection, serving, MLOps |
-| Expert — Scale | E1–E4 | Vol II: distributed training, fleet, inference at scale, production concerns |
-| Expert — Architecture 2.0 | E5–E17 | CS249r Weeks 1–13 in order, then the survey capstone |
+| Beginner, Foundation | B1–B9 | D·A·M / Iron Law, then TinyTorch 01–08 (tensor → training) |
+| Intermediate, Architecture | I1–I6 | TinyTorch 09–13 (conv, tokenization, embeddings, attention, transformer) + framework internals |
+| Advanced, Optimization | A1–A10 | TinyTorch 14–20 (profiling → capstone) + V1 data selection, serving, MLOps |
+| Expert, Scale | E1–E4 | Vol II: distributed training, fleet, inference at scale, production concerns |
+| Expert, Architecture 2.0 | E5–E17 | CS249r Weeks 1–13 in order, then the survey capstone |
 
 Rules the numbering follows:
 
@@ -67,7 +67,7 @@ Rules the numbering follows:
 
   The link text is the topic **title**; the sync script reads the topic code from the anchor
   (`#b7-…`). A chapter file without this line is an error.
-- **Never show a topic code (B7, I3, E12, …) anywhere in a chapter** — prose, tables, admonitions,
+- **Never show a topic code (B7, I3, E12, …) anywhere in a chapter**: prose, tables, admonitions,
   See-also, What's next. Readers of a book navigate by chapter number; codes are learning-path
   bookkeeping. Refer to every chapter as **"Chapter N"** (number from `docs/book/index.md`), with
   its title where it helps:
@@ -92,17 +92,17 @@ chapter is correct.
 1. **Nothing is used before it is explained.** A reader never meets a term, tensor, symbol, API or
    mechanism the chapter leans on before this chapter or an earlier one has named it. **This is a
    book, not a notebook.** Every chapter states its exit contract up front as
-   `## What you should be able to do by the end` — 4–6 concrete, checkable abilities derived from the
+   `## What you should be able to do by the end`: 4–6 concrete, checkable abilities derived from the
    topic's **Milestone** ("compute the KV-cache bytes for a 7 B model at 8 k context"), not things the
    reader knows about. That list is the one fixed opening; everything after it is chosen by topic.
 2. **All three layers:** mechanism, built version, systems cost (see above).
 3. **Teach toward the milestone.** The reader who finishes can do exactly what the milestone says.
 4. **Runnable code.** NumPy/TinyTorch code runs as written on Python 3.10+ with the reader's own
    TinyTorch package (`from tinytorch.core.tensor import Tensor`); PyTorch comparisons run on the
-   current stable PyTorch. Never paste TinyTorch *solution* code from the repo — write the idea in
+   current stable PyTorch. Never paste TinyTorch *solution* code from the repo: write the idea in
    your own words/code or reference the reader's own implementation.
 5. **Every body callout is a Material admonition**, never a `>` blockquote.
-6. **End pointing forward** to the next chapter by number and title — never by topic code — naming
+6. **End pointing forward** to the next chapter by number and title: never by topic code: naming
    what it builds on this one.
 
 ---
@@ -111,7 +111,7 @@ chapter is correct.
 
 | Shape | Fits a topic where… | Arc |
 | --- | --- | --- |
-| **Problem-first** | the reader arrives burned — a `nan` loss, an OOM, a slow generator | the failure, reproduced → why → the mechanism → the fix |
+| **Problem-first** | the reader arrives burned, a `nan` loss, an OOM, a slow generator | the failure, reproduced → why → the mechanism → the fix |
 | **Orientation-first** | the reader arrives with nothing built and no grievance (B1, E5) | the thing end to end → each part in depth → failure modes |
 | **Mechanism-first** | the idea is the value (autograd, attention, roofline, systolic dataflow) | the model from first principles → what it buys → where frameworks/hardware implement it |
 | **Surface-first** | a body of API the reader must become fluent in (`torch.distributed`, `tito`) | the construct's shape → semantics and edge cases → where it goes wrong |
@@ -132,7 +132,7 @@ orientation topic invents a motivation the reader does not have.
 - Back-of-envelope cost tables: params, FLOPs, activation/optimizer/KV memory, bytes moved
 - Roofline plots or arithmetic-intensity tables
 - Paper comparison tables (method, search space, evaluation, headline result, main critique)
-- Pitfalls — what goes wrong and what it looks like (`nan`, OOM, a graph break, a vacuous assertion)
+- Pitfalls: what goes wrong and what it looks like (`nan`, OOM, a graph break, a vacuous assertion)
 - Exercises mapping to the milestone; a `## Lab` that combines and breaks what was taught inline
 - Summary and references
 
@@ -146,12 +146,12 @@ orientation topic invents a motivation the reader does not have.
   version". Label each block with which of the three it is.
 - Show shapes in comments (`# (B, T, C)`), dtypes where precision matters.
 - Seed randomness (`np.random.default_rng(0)`) so outputs reproduce.
-- Use `torch.utils.benchmark` or TinyTorch's Module 19 tooling for timing — never a bare `time.time()`
+- Use `torch.utils.benchmark` or TinyTorch's Module 19 tooling for timing: never a bare `time.time()`
   around one call.
 
 ### Measured claims
 
-Any number the chapter asserts — a speedup, an accuracy, a memory size — comes from a run the author
+Any number the chapter asserts: a speedup, an accuracy, a memory size: comes from a run the author
 did, with hardware, versions and settings stated on one line
 (`TinyTorch v0.1.13, NumPy 2.x, Python 3.13, i7/32 GB, batch 64`). A number carried from a paper or
 from TinyTorch's own pages ("8–16× smaller", "12–40× faster") is **attributed** as theirs, not
@@ -179,7 +179,7 @@ Record verified facts in `docs/research-cache/version-facts.md`. Known traps:
 
 ---
 
-## Current versions (verified 2026-09-11 — see docs/research-cache/version-facts.md)
+## Current versions (verified 2026-09-11: see docs/research-cache/version-facts.md)
 
 | Component | Version | Note |
 |---|---|---|
@@ -240,7 +240,7 @@ item.
 
 ## After writing a chapter
 
-1. `python scripts/sync_book_index.py` — regenerates `docs/book/index.md`. Do not hand-edit it.
+1. `python scripts/sync_book_index.py`: regenerates `docs/book/index.md`. Do not hand-edit it.
 2. Flip the topic heading in `docs/learning-path.md` from `⬜` to `✅`.
 3. Add the chapter to `zensical.toml` nav under `Book`.
 4. Append new terms to `docs/reference/glossary.md` with the chapter link.
