@@ -15,9 +15,9 @@ description: >
 # ML Systems Book: Chapter Writing
 
 Synthesised chapters, one per learning-path topic, at `C:\opt\learn\machinelearning\notes\docs\book\`.
-A chapter blends **every source the user has worked through** on that topic: TinyTorch module notes
+A chapter blends **every source the user has worked through** on that topic (TinyTorch module notes
 and their own implementation, MLSysBook chapters, CS249r papers and blog posts, course lectures, and
-current docs: into one explained treatment aligned to the learning-path milestone.
+current docs) into one explained treatment aligned to the learning-path milestone.
 
 This skill is invoked by **Phase 3** of the `learning-path` skill. Read
 `learning-path/references/phase3-book.md` for the full workflow (gather notes → web-search current
@@ -102,7 +102,7 @@ chapter is correct.
    current stable PyTorch. Never paste TinyTorch *solution* code from the repo: write the idea in
    your own words/code or reference the reader's own implementation.
 5. **Every body callout is a Material admonition**, never a `>` blockquote.
-6. **End pointing forward** to the next chapter by number and title: never by topic code: naming
+6. **End pointing forward** to the next chapter by number and title (never by topic code), naming
    what it builds on this one.
 
 ---
@@ -151,7 +151,7 @@ orientation topic invents a motivation the reader does not have.
 
 ### Measured claims
 
-Any number the chapter asserts: a speedup, an accuracy, a memory size: comes from a run the author
+Any number the chapter asserts (a speedup, an accuracy, a memory size) comes from a run the author
 did, with hardware, versions and settings stated on one line
 (`TinyTorch v0.1.13, NumPy 2.x, Python 3.13, i7/32 GB, batch 64`). A number carried from a paper or
 from TinyTorch's own pages ("8–16× smaller", "12–40× faster") is **attributed** as theirs, not
